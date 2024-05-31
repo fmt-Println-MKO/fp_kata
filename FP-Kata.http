@@ -1,0 +1,6 @@
+@base_url = http://localhost:8000
+@userId = 1
+
+### GET request to example server
+GET {{base_url}}/orders?userId={{userId}}
+Accept: application/json
