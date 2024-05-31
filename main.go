@@ -2,16 +2,17 @@ package main
 
 import (
 	"fp_kata/api/orders"
-	"fp_kata/common/log"
+	fpLog "fp_kata/common/log"
 	"github.com/gorilla/mux"
+	"github.com/rs/zerolog/log"
 	"net/http"
 )
 
 func main() {
-	logger := log.GetLogger()
+	fpLog.InitLogger()
 
-	logger.Info("Application started")
-	logger.Info("Hello functional go")
+	log.Info().Msg("Application started")
+	log.Info().Msg("Hello functional go")
 
 	r := mux.NewRouter()
 

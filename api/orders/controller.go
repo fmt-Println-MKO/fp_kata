@@ -2,12 +2,11 @@ package orders
 
 import (
 	"encoding/json"
-	"fp_kata/common/log"
 	"fp_kata/internal/model"
 	"fp_kata/internal/services"
 	modelRes "fp_kata/model"
 	"github.com/gorilla/mux"
-	"go.uber.org/zap"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"strconv"
 )
@@ -34,14 +33,14 @@ func (c *OrderController) RegisterRoutes(router *mux.Router) {
 
 // GetOrders handles "/orders" with method "GET"
 func (c *OrderController) GetOrders(w http.ResponseWriter, r *http.Request) {
-	logger := log.GetLogger()
 
-	logger.Info("GetOrders")
+	log.Info().Msg("GetOrders")
 
 	queryParams := r.URL.Query()
 	userId := queryParams.Get("userId")
 
-	logger.Info("GetOrders userId: ", zap.String("userId", userId))
+	log.Info().Str("func", "GetOrders").Str("userId", userId)
+	log.Info().Msgf("GetOrders -  userId: %s", userId)
 
 	uid, err := strconv.Atoi(userId)
 	if err != nil {
@@ -95,9 +94,8 @@ func (c *OrderController) GetOrders(w http.ResponseWriter, r *http.Request) {
 
 // GetOrder handles "/orders/{id}" with method "GET"
 func (c *OrderController) GetOrder(w http.ResponseWriter, r *http.Request) {
-	logger := log.GetLogger()
 
-	logger.Info("GetOrder")
+	log.Info().Msg("GetOrder")
 
 	queryParams := r.URL.Query()
 	orderId := queryParams.Get("orderId")
