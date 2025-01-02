@@ -1,16 +1,16 @@
-package model
+package transports
 
 import (
 	"time"
 )
 
-type Order struct {
+type OrderResponse struct {
 	ID             int
 	ProductID      int
 	Quantity       int
 	Price          float64
 	OrderDate      time.Time
-	Payments       []Payment
-	User           User
+	Payments       []PaymentResponse
+	User           UserResponse
 	hasWeightables bool
 }

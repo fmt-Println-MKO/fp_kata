@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fp_kata/api/orders"
-	fpLog "fp_kata/common/log"
+	"fp_kata/internal/controllers"
+	fpLog "fp_kata/pkg/log"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 	"net/http"
@@ -16,7 +16,7 @@ func main() {
 
 	r := mux.NewRouter()
 
-	ordersController := orders.NewOrderController()
+	ordersController := controllers.NewOrderController()
 
 	ordersController.RegisterRoutes(r)
 

@@ -1,24 +1,25 @@
 package services
 
 import (
-	"fp_kata/internal/model"
-	"fp_kata/internal/storage/yugabyte"
+	"fp_kata/internal/datasources"
+	"fp_kata/internal/datasources/yugabyte"
+	"fp_kata/internal/models"
 )
 
 type PaymentService interface {
-	GetPaymentsByOrder(order int) ([]*model.Payment, error)
-	GetPaymentByID(id int) (*model.Payment, error)
+	GetPaymentsByOrder(order int) ([]*models.Payment, error)
+	GetPaymentByID(id int) (*models.Payment, error)
 }
 
 type paymentService struct {
-	storage yugabyte.PaymentStorage
+	storage datasources.PaymentsDatasource
 }
 
 func NewPaymentService() PaymentService {
 	return &paymentService{storage: yugabyte.NewPaymentStorage()}
 }
 
-func (service *paymentService) GetPaymentByID(id int) (*model.Payment, error) {
+func (service *paymentService) GetPaymentByID(id int) (*models.Payment, error) {
 	payment, err := service.storage.Read(id)
 	if err != nil {
 		return nil, err
@@ -26,13 +27,13 @@ func (service *paymentService) GetPaymentByID(id int) (*model.Payment, error) {
 	return &payment, nil
 }
 
-func (service *paymentService) GetPaymentsByOrder(order int) ([]*model.Payment, error) {
+func (service *paymentService) GetPaymentsByOrder(order int) ([]*models.Payment, error) {
 
 	payments, err := service.storage.AllByOrderId(order)
 	if err != nil {
 		return nil, err
 	}
-	var result []*model.Payment
+	var result []*models.Payment
 	for _, p := range payments {
 		result = append(result, &p)
 	}

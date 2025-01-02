@@ -2,22 +2,15 @@ package file
 
 import (
 	"errors"
-	"fp_kata/internal/model"
+	"fp_kata/internal/datasources"
+	"fp_kata/internal/models"
 )
 
-type OrderStorage interface {
-	GetOrder(orderID int) (*model.Order, error)
-	GetAllOrders(userID int) ([]*model.Order, error)
-	DeleteOrder(orderID int) error
-	UpdateOrder(order *model.Order) error
-	InsertOrder(order *model.Order) error
-}
-
 type inMemoryOrderStorage struct {
-	orders map[int]*model.Order
+	orders map[int]*models.Order
 }
 
-func (s *inMemoryOrderStorage) GetOrder(orderID int) (*model.Order, error) {
+func (s *inMemoryOrderStorage) GetOrder(orderID int) (*models.Order, error) {
 	order, exists := s.orders[orderID]
 	if !exists {
 		return nil, errors.New("order not found")
@@ -25,8 +18,8 @@ func (s *inMemoryOrderStorage) GetOrder(orderID int) (*model.Order, error) {
 	return order, nil
 }
 
-func (s *inMemoryOrderStorage) GetAllOrders(userID int) ([]*model.Order, error) {
-	userOrders := make([]*model.Order, 0)
+func (s *inMemoryOrderStorage) GetAllOrders(userID int) ([]*models.Order, error) {
+	userOrders := make([]*models.Order, 0)
 	for _, order := range s.orders {
 		if order.UserId == userID {
 			userOrders = append(userOrders, order)
@@ -43,7 +36,7 @@ func (s *inMemoryOrderStorage) DeleteOrder(orderID int) error {
 	return nil
 }
 
-func (s *inMemoryOrderStorage) UpdateOrder(order *model.Order) error {
+func (s *inMemoryOrderStorage) UpdateOrder(order *models.Order) error {
 	_, exists := s.orders[order.ID]
 	if !exists {
 		return errors.New("order not found")
@@ -52,7 +45,7 @@ func (s *inMemoryOrderStorage) UpdateOrder(order *model.Order) error {
 	return nil
 }
 
-func (s *inMemoryOrderStorage) InsertOrder(order *model.Order) error {
+func (s *inMemoryOrderStorage) InsertOrder(order *models.Order) error {
 	if _, exists := s.orders[order.ID]; exists {
 		return errors.New("order already exists")
 	}
@@ -60,8 +53,8 @@ func (s *inMemoryOrderStorage) InsertOrder(order *model.Order) error {
 	return nil
 }
 
-func NewOrderStorage() OrderStorage {
+func NewOrderStorage() datasources.OrdersDatasource {
 	return &inMemoryOrderStorage{
-		orders: make(map[int]*model.Order),
+		orders: make(map[int]*models.Order),
 	}
 }

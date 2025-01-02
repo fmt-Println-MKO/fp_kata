@@ -2,38 +2,31 @@ package yugabyte
 
 import (
 	"fmt"
-	"fp_kata/internal/model"
+	"fp_kata/internal/datasources"
+	"fp_kata/internal/models"
 )
 
-type PaymentStorage interface {
-	Create(model.Payment) (int, error)
-	Read(int) (model.Payment, error)
-	Update(int, model.Payment) error
-	Delete(int) error
-	AllByOrderId(int) ([]model.Payment, error)
-}
+type inMemoryPaymentStorage map[int]models.Payment
 
-type inMemoryPaymentStorage map[int]model.Payment
-
-func NewPaymentStorage() PaymentStorage {
+func NewPaymentStorage() datasources.PaymentsDatasource {
 	return make(inMemoryPaymentStorage)
 }
 
-func (s inMemoryPaymentStorage) Create(p model.Payment) (int, error) {
+func (s inMemoryPaymentStorage) Create(p models.Payment) (int, error) {
 	id := len(s) + 1
 	p.PaymentID = id
 	s[id] = p
 	return id, nil
 }
 
-func (s inMemoryPaymentStorage) Read(id int) (model.Payment, error) {
+func (s inMemoryPaymentStorage) Read(id int) (models.Payment, error) {
 	if p, exists := s[id]; exists {
 		return p, nil
 	}
-	return model.Payment{}, fmt.Errorf("payment with id %d not found", id)
+	return models.Payment{}, fmt.Errorf("payment with id %d not found", id)
 }
 
-func (s inMemoryPaymentStorage) Update(id int, p model.Payment) error {
+func (s inMemoryPaymentStorage) Update(id int, p models.Payment) error {
 	if _, exists := s[id]; exists {
 		p.PaymentID = id
 		s[id] = p
@@ -50,9 +43,9 @@ func (s inMemoryPaymentStorage) Delete(id int) error {
 	return fmt.Errorf("payment with id %d not found", id)
 }
 
-func (s inMemoryPaymentStorage) AllByOrderId(orderId int) ([]model.Payment, error) {
+func (s inMemoryPaymentStorage) AllByOrderId(orderId int) ([]models.Payment, error) {
 
-	var payments []model.Payment
+	var payments []models.Payment
 	for _, payment := range s {
 		if payment.OrderId == orderId {
 			payments = append(payments, payment)

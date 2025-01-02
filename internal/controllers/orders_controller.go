@@ -1,10 +1,10 @@
-package orders
+package controllers
 
 import (
 	"encoding/json"
-	"fp_kata/internal/model"
+	"fp_kata/internal/models"
 	"fp_kata/internal/services"
-	modelRes "fp_kata/model"
+	"fp_kata/pkg/transports"
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 	"net/http"
@@ -48,7 +48,7 @@ func (c *OrderController) GetOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filter := func(order model.Order) bool {
+	filter := func(order models.Order) bool {
 		return order.Price > 20
 	}
 
@@ -58,14 +58,14 @@ func (c *OrderController) GetOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result := make([]modelRes.Order, len(orders))
+	result := make([]transports.OrderResponse, len(orders))
 	for i, order := range orders {
 
-		payments := make([]modelRes.Payment, len(order.Payments))
+		payments := make([]transports.PaymentResponse, len(order.Payments))
 		for i, id := range order.Payments {
 			payment, err := c.paymentService.GetPaymentByID(id)
 			if err != nil {
-				payments[i] = modelRes.Payment{}
+				payments[i] = transports.PaymentResponse{}
 			} else {
 				payments[i] = mapPayments(*payment)
 			}
@@ -112,11 +112,11 @@ func (c *OrderController) GetOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	payments := make([]modelRes.Payment, len(order.Payments))
+	payments := make([]transports.PaymentResponse, len(order.Payments))
 	for i, id := range order.Payments {
 		payment, err := c.paymentService.GetPaymentByID(id)
 		if err != nil {
-			payments[i] = modelRes.Payment{}
+			payments[i] = transports.PaymentResponse{}
 		} else {
 			payments[i] = mapPayments(*payment)
 		}
@@ -141,8 +141,8 @@ func (c *OrderController) GetOrder(w http.ResponseWriter, r *http.Request) {
 	w.Write(resp)
 }
 
-func mapToModelOrder(order model.Order, payments []modelRes.Payment, user modelRes.User) modelRes.Order {
-	return modelRes.Order{
+func mapToModelOrder(order models.Order, payments []transports.PaymentResponse, user transports.UserResponse) transports.OrderResponse {
+	return transports.OrderResponse{
 		ID:        order.ID,
 		ProductID: order.ProductID,
 		Quantity:  order.Quantity,
@@ -153,18 +153,18 @@ func mapToModelOrder(order model.Order, payments []modelRes.Payment, user modelR
 	}
 }
 
-func mapUser(user model.User) modelRes.User {
-	return modelRes.User{
+func mapUser(user models.User) transports.UserResponse {
+	return transports.UserResponse{
 		ID:       user.ID,
 		Username: user.Username,
 		Email:    user.Email,
 	}
 }
 
-func mapPayments(payment model.Payment) modelRes.Payment {
-	return modelRes.Payment{
+func mapPayments(payment models.Payment) transports.PaymentResponse {
+	return transports.PaymentResponse{
 		PaymentID:     payment.PaymentID,
 		PaymentAmount: payment.PaymentAmount,
-		PaymentMethod: modelRes.PaymentMethod(payment.PaymentMethod),
+		PaymentMethod: transports.PaymentMethod(payment.PaymentMethod),
 	}
 }

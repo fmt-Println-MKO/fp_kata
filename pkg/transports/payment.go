@@ -1,4 +1,4 @@
-package model
+package transports
 
 type PaymentMethod string
 
@@ -9,16 +9,16 @@ const (
 	BankTransfer PaymentMethod = "BankTransfer"
 )
 
-type Payment struct {
+type PaymentResponse struct {
 	PaymentID     int
 	PaymentAmount float64
 	PaymentMethod PaymentMethod
-	User          User
-	Order         Order
+	User          UserResponse
+	Order         OrderResponse
 }
 
-func NewPayment(id int, amount float64, method PaymentMethod, u User, o Order) *Payment {
-	return &Payment{
+func NewPaymentResponse(id int, amount float64, method PaymentMethod, u UserResponse, o OrderResponse) *PaymentResponse {
+	return &PaymentResponse{
 		PaymentID:     id,
 		PaymentAmount: amount,
 		PaymentMethod: method,

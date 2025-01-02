@@ -2,16 +2,17 @@ package services
 
 import (
 	"errors"
-	"fp_kata/internal/model"
-	"fp_kata/internal/storage/file"
+	"fp_kata/internal/datasources"
+	"fp_kata/internal/datasources/file"
+	"fp_kata/internal/models"
 )
 
 type UserService interface {
-	GetUserByID(id int) (*model.User, error)
+	GetUserByID(id int) (*models.User, error)
 }
 
 type userService struct {
-	storage file.UserStorage
+	storage datasources.UsersDatasource
 }
 
 func NewUserService() UserService {
@@ -20,7 +21,7 @@ func NewUserService() UserService {
 	}
 }
 
-func (us *userService) GetUserByID(id int) (*model.User, error) {
+func (us *userService) GetUserByID(id int) (*models.User, error) {
 	user, exists := us.storage.Read(id)
 	if !exists {
 		return nil, errors.New("no user found for id")
