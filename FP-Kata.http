@@ -1,6 +1,82 @@
 @base_url = http://localhost:8000
 @userId = 1
+@minPrice = 19.99
+@orderId=51
+@orderIdNotFound=100
 
-### GET request to example server
-GET {{base_url}}/orders?userId={{userId}}
+### SignUp new user
+POST {{base_url}}/users
 Accept: application/json
+Content-Type: application/json
+
+{
+  "Email": "test.user@email.com",
+  "password": "supersecret"
+}
+
+### Get current logged in user
+GET {{base_url}}/users/me
+Accept: application/json
+Authorization: token_1
+
+### Place a new order
+POST {{base_url}}/orders
+Accept: application/json
+Authorization: token_1
+Content-Type: application/json
+
+{
+  "product_id": 1,
+  "quantity": 1,
+  "price": 10.11,
+  "order_date": "2025-01-30T10:30:00Z",
+  "payments": [
+    {
+      "payment_amount": 10.11,
+      "payment_method": "DebitCard"
+    }
+  ],
+  "hasWeightables": false
+}
+
+### Place a new order with higher price
+POST {{base_url}}/orders
+Accept: application/json
+Authorization: token_1
+Content-Type: application/json
+
+{
+  "product_id": 2,
+  "quantity": 2,
+  "price": 23.11,
+  "order_date": "2025-01-30T10:30:00Z",
+  "payments": [
+    {
+      "payment_amount": 23.11,
+      "payment_method": "CreditCard"
+    }
+  ],
+  "hasWeightables": false
+}
+
+
+### GET all orders for user
+GET {{base_url}}/orders
+Accept: application/json
+Authorization: token_1
+
+### GET all orders for user with min price
+GET {{base_url}}/orders?price={{minPrice}}
+Accept: application/json
+Authorization: token_1
+
+### GET order with id
+GET {{base_url}}/orders/{{orderId}}
+Accept: application/json
+Authorization: token_1
+
+
+### GET order with id that does not exists
+GET {{base_url}}/orders/{{orderIdNotFound}}
+Accept: application/json
+Authorization: token_1
