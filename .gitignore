@@ -5,4 +5,4 @@
 /go.sum
 /.idea/vcs.xml
 /.idea/
-.DS_Store
+*.DS_Store
