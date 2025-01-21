@@ -6,6 +6,7 @@ import (
 	"fp_kata/internal/datasources/dsmodels"
 	"fp_kata/pkg/log"
 	zlog "github.com/rs/zerolog/log"
+	"github.com/samber/mo"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,13 +24,14 @@ func TestGetOrder(t *testing.T) {
 
 	const errOrderNotFound = "order not found"
 
-	validateOrderMatches := func(t *testing.T, expected, actual *dsmodels.Order, err error) {
-		assert.NoError(t, err, "unexpected error received")
-		assert.Equal(t, expected, actual, "expected order mismatch")
+	validateOrderMatches := func(t *testing.T, expected dsmodels.Order, actual mo.Result[dsmodels.Order]) {
+		assert.NoError(t, actual.Error(), "unexpected error received")
+		assert.Equal(t, expected, actual.OrEmpty(), "expected order mismatch")
+
 	}
-	validateOrderNotFound := func(t *testing.T, actual *dsmodels.Order, err error) {
-		assert.Nil(t, actual, "expected no order to be returned")
-		assert.EqualError(t, err, errOrderNotFound, "expected error mismatch")
+	validateOrderNotFound := func(t *testing.T, actual mo.Result[dsmodels.Order]) {
+		assert.True(t, actual.IsError(), "expected no order to be returned")
+		assert.EqualError(t, actual.Error(), errOrderNotFound, "expected error mismatch")
 	}
 
 	tests := []struct {
@@ -37,7 +39,7 @@ func TestGetOrder(t *testing.T) {
 		initialOrders map[int]dsmodels.Order
 		orderID       int
 		expectedOrder *dsmodels.Order
-		validate      func(*testing.T, *dsmodels.Order, error)
+		validate      func(*testing.T, mo.Result[dsmodels.Order])
 	}{
 		{
 			name: "OrderExists",
@@ -46,8 +48,8 @@ func TestGetOrder(t *testing.T) {
 			},
 			orderID:       1,
 			expectedOrder: &dsmodels.Order{ID: 1, UserId: 123, Payments: []int{1, 2}},
-			validate: func(t *testing.T, order *dsmodels.Order, err error) {
-				validateOrderMatches(t, &dsmodels.Order{ID: 1, UserId: 123, Payments: []int{1, 2}}, order, err)
+			validate: func(t *testing.T, order mo.Result[dsmodels.Order]) {
+				validateOrderMatches(t, dsmodels.Order{ID: 1, UserId: 123, Payments: []int{1, 2}}, order)
 			},
 		},
 		{
@@ -72,9 +74,9 @@ func TestGetOrder(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			storage, ctx := initTestOrdersStorage(tc.initialOrders)
 
-			order, err := storage.GetOrder(ctx, tc.orderID)
+			orderResult := storage.GetOrder(ctx, tc.orderID)
 
-			tc.validate(t, order, err)
+			tc.validate(t, orderResult)
 		})
 	}
 }
