@@ -7,6 +7,8 @@ import (
 
 	dsmodels "fp_kata/internal/datasources/dsmodels"
 
+	mo "github.com/samber/mo"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -56,29 +58,17 @@ func (_m *OrdersDatasource) GetAllOrdersForUser(ctx context.Context, userID int)
 }
 
 // GetOrder provides a mock function with given fields: ctx, orderID
-func (_m *OrdersDatasource) GetOrder(ctx context.Context, orderID int) (*dsmodels.Order, error) {
+func (_m *OrdersDatasource) GetOrder(ctx context.Context, orderID int) mo.Result[dsmodels.Order] {
 	ret := _m.Called(ctx, orderID)
 
-	var r0 *dsmodels.Order
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int) (*dsmodels.Order, error)); ok {
-		return rf(ctx, orderID)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, int) *dsmodels.Order); ok {
+	var r0 mo.Result[dsmodels.Order]
+	if rf, ok := ret.Get(0).(func(context.Context, int) mo.Result[dsmodels.Order]); ok {
 		r0 = rf(ctx, orderID)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*dsmodels.Order)
-		}
+		r0 = ret.Get(0).(mo.Result[dsmodels.Order])
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, int) error); ok {
-		r1 = rf(ctx, orderID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // InsertOrder provides a mock function with given fields: ctx, order

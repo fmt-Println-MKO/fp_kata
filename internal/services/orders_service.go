@@ -8,11 +8,13 @@ import (
 	"fp_kata/internal/datasources/dsmodels"
 	"fp_kata/internal/models"
 	"fp_kata/pkg/log"
+	"github.com/samber/lo"
+	"github.com/samber/mo"
 )
 
 type OrdersService interface {
 	StoreOrder(ctx context.Context, userId int, order models.Order) (*models.Order, error)
-	GetOrder(ctx context.Context, userId int, id int) (*models.Order, error)
+	GetOrder(ctx context.Context, userId int, id int) mo.Result[models.Order]
 	GetOrders(ctx context.Context, userId int) ([]*models.Order, error)
 	GetOrdersWithFilter(ctx context.Context, userId int, filter func(order *models.Order) bool) ([]*models.Order, error)
 }
@@ -83,29 +85,36 @@ func (service *ordersService) processPayments(ctx context.Context, order *models
 	return storedPayments, nil
 }
 
-func (service *ordersService) GetOrder(ctx context.Context, userId int, id int) (*models.Order, error) {
+func (service *ordersService) GetOrder(ctx context.Context, userId int, id int) mo.Result[models.Order] {
 	logger := log.GetLogger(ctx)
 	logger.Debug().Str("comp", "OrdersService").Str("func", "GetOrder").Send()
 
 	if userId == 0 {
-		return nil, errors.New("user id is required")
+		//return nil, errors.New("user id is required")
+		return mo.Errf[models.Order]("user id is required")
 	}
 
-	dsOrder, err := service.storage.GetOrder(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	if dsOrder.UserId != userId {
-		return nil, errors.New("user is not authorized to access this order")
+	isAuthorized := func(dsOrder dsmodels.Order) mo.Result[dsmodels.Order] {
+		return lo.
+			If(dsOrder.UserId != userId, mo.Errf[dsmodels.Order]("user is not authorized to access this order")).
+			Else(mo.Ok(dsOrder))
 	}
 
-	payments, err := service.paymentService.GetPaymentsByOrder(ctx, id)
-	if err != nil {
-		return nil, err
-	}
+	dsOrderResult := service.storage.
+		GetOrder(ctx, id).
+		FlatMap(isAuthorized)
 
-	order := models.MapToOrder(*dsOrder, payments, &models.User{ID: dsOrder.UserId})
-	return order, nil
+	orderResult := lo.
+		If(dsOrderResult.IsError(), mo.Err[models.Order](dsOrderResult.Error())).
+		ElseF(func() mo.Result[models.Order] {
+			dsOrder := dsOrderResult.MustGet()
+			payments, err := service.paymentService.GetPaymentsByOrder(ctx, id)
+			return lo.
+				If(err != nil, mo.Err[models.Order](err)).
+				Else(mo.Ok[models.Order](*models.MapToOrder(dsOrder, payments, &models.User{ID: dsOrder.UserId})))
+		})
+
+	return orderResult
 }
 
 func (service *ordersService) GetOrders(ctx context.Context, userId int) ([]*models.Order, error) {

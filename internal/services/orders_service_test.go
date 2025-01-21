@@ -5,6 +5,7 @@ import (
 	"fp_kata/internal/datasources/dsmodels"
 	"fp_kata/pkg/log"
 	zlog "github.com/rs/zerolog/log"
+	"github.com/samber/mo"
 	"github.com/stretchr/testify/mock"
 	"testing"
 
@@ -361,14 +362,14 @@ func TestOrderService_GetOrdersWithFilter(t *testing.T) {
 	}
 }
 
-func assertError(t *testing.T, err error, expectedErr error) {
-	assert.Nil(t, nil, "expected result to be nil")
-	assert.EqualError(t, err, expectedErr.Error(), "unexpected error message")
+func assertError(t *testing.T, err mo.Result[models.Order], expectedErr error) {
+	assert.True(t, err.IsError(), "expected result to be nil")
+	assert.EqualError(t, err.Error(), expectedErr.Error(), "unexpected error message")
 }
 
-func assertSuccess(t *testing.T, err error, expectedOrder *models.Order, actualOrder *models.Order) {
-	assert.NoError(t, err, "expected no error")
-	assert.Equal(t, expectedOrder, actualOrder, "unexpected order result")
+func assertSuccess(t *testing.T, expectedOrder *models.Order, actualOrder mo.Result[models.Order]) {
+	assert.True(t, actualOrder.IsOk(), "expected no error")
+	assert.Equal(t, *expectedOrder, actualOrder.MustGet(), "unexpected order result")
 }
 
 func TestOrderService_GetOrder(t *testing.T) {
@@ -380,19 +381,19 @@ func TestOrderService_GetOrder(t *testing.T) {
 		userId     int
 		orderId    int
 		mockSetup  func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService)
-		assertFunc func(t *testing.T, err error, actualOrder *models.Order)
+		assertFunc func(t *testing.T, actualOrder mo.Result[models.Order])
 	}{
 		{
 			name:    "success case",
 			userId:  1,
 			orderId: 123,
 			mockSetup: func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService) {
-				storage.On("GetOrder", ctx, 123).Return(&dsmodels.Order{ID: 123, UserId: 1}, nil)
+				storage.On("GetOrder", ctx, 123).Return(mo.Ok(dsmodels.Order{ID: 123, UserId: 1}))
 				paymentService.On("GetPaymentsByOrder", ctx, 123).Return([]*models.Payment{}, nil)
 			},
-			assertFunc: func(t *testing.T, err error, actualOrder *models.Order) {
+			assertFunc: func(t *testing.T, actualOrder mo.Result[models.Order]) {
 				expectedOrder := &models.Order{ID: 123, User: &models.User{ID: 1}, Payments: []*models.Payment{}}
-				assertSuccess(t, err, expectedOrder, actualOrder)
+				assertSuccess(t, expectedOrder, actualOrder)
 			},
 		},
 		{
@@ -402,8 +403,8 @@ func TestOrderService_GetOrder(t *testing.T) {
 			mockSetup: func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService) {
 				// No mocks needed since the function returns at the beginning
 			},
-			assertFunc: func(t *testing.T, err error, actualOrder *models.Order) {
-				assertError(t, err, errors.New("user id is required"))
+			assertFunc: func(t *testing.T, actualOrder mo.Result[models.Order]) {
+				assertError(t, actualOrder, errors.New("user id is required"))
 			},
 		},
 		{
@@ -411,10 +412,10 @@ func TestOrderService_GetOrder(t *testing.T) {
 			userId:  1,
 			orderId: 123,
 			mockSetup: func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService) {
-				storage.On("GetOrder", ctx, 123).Return(nil, errors.New("order not found"))
+				storage.On("GetOrder", ctx, 123).Return(mo.Errf[dsmodels.Order]("order not found"))
 			},
-			assertFunc: func(t *testing.T, err error, actualOrder *models.Order) {
-				assertError(t, err, errors.New("order not found"))
+			assertFunc: func(t *testing.T, actualOrder mo.Result[models.Order]) {
+				assertError(t, actualOrder, errors.New("order not found"))
 			},
 		},
 		{
@@ -422,10 +423,10 @@ func TestOrderService_GetOrder(t *testing.T) {
 			userId:  2,
 			orderId: 123,
 			mockSetup: func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService) {
-				storage.On("GetOrder", ctx, 123).Return(&dsmodels.Order{ID: 123, UserId: 1}, nil)
+				storage.On("GetOrder", ctx, 123).Return(mo.Ok(dsmodels.Order{ID: 123, UserId: 1}))
 			},
-			assertFunc: func(t *testing.T, err error, actualOrder *models.Order) {
-				assertError(t, err, errors.New("user is not authorized to access this order"))
+			assertFunc: func(t *testing.T, actualOrder mo.Result[models.Order]) {
+				assertError(t, actualOrder, errors.New("user is not authorized to access this order"))
 			},
 		},
 		{
@@ -433,11 +434,11 @@ func TestOrderService_GetOrder(t *testing.T) {
 			userId:  1,
 			orderId: 123,
 			mockSetup: func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService) {
-				storage.On("GetOrder", ctx, 123).Return(&dsmodels.Order{ID: 123, UserId: 1}, nil)
+				storage.On("GetOrder", ctx, 123).Return(mo.Ok(dsmodels.Order{ID: 123, UserId: 1}))
 				paymentService.On("GetPaymentsByOrder", ctx, 123).Return(nil, errors.New("payment fetch error"))
 			},
-			assertFunc: func(t *testing.T, err error, actualOrder *models.Order) {
-				assertError(t, err, errors.New("payment fetch error"))
+			assertFunc: func(t *testing.T, actualOrder mo.Result[models.Order]) {
+				assertError(t, actualOrder, errors.New("payment fetch error"))
 			},
 		},
 	}
@@ -450,8 +451,8 @@ func TestOrderService_GetOrder(t *testing.T) {
 
 			service := NewOrdersService(storage, paymentService)
 
-			actualOrder, err := service.GetOrder(ctx, test.userId, test.orderId)
-			test.assertFunc(t, err, actualOrder)
+			actualOrderResult := service.GetOrder(ctx, test.userId, test.orderId)
+			test.assertFunc(t, actualOrderResult)
 
 			storage.AssertExpectations(t)
 			paymentService.AssertExpectations(t)
