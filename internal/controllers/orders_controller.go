@@ -70,35 +70,38 @@ func (c *OrdersController) CreateOrder(ctx fiber.Ctx) error {
 }
 
 // GetOrders handles "/orders" with method "GET"
-func (c *OrdersController) GetOrders(ctx fiber.Ctx) error {
-	logger := log.GetFiberLogger(ctx)
-	context := log.NewBackgroundContext(logger)
-	utils.LogAction(context, compOrdersController, "GetOrders")
+func (c *OrdersController) GetOrders(requestCtx fiber.Ctx) error {
+	logger := log.GetFiberLogger(requestCtx)
+	backgroundCtx := log.NewBackgroundContext(logger)
+	utils.LogAction(backgroundCtx, compOrdersController, "GetOrders")
 
-	user := ctx.Locals(constants.AuthenticatedUserKey).(models.User)
+	user := requestCtx.Locals(constants.AuthenticatedUserKey).(models.User)
+
+	backgroundCtx = context.WithValue(backgroundCtx, constants.AuthenticatedUserKey, &user)
+	backgroundCtx = context.WithValue(backgroundCtx, constants.AuthenticatedUserIdKey, user.ID)
 
 	var orders []*models.Order
 
-	price := ctx.Query("price")
+	price := requestCtx.Query("price")
 	if price != "" {
 		priceInt, err := strconv.ParseFloat(price, 64)
 		if err != nil {
-			return ctx.Status(fiber.StatusBadRequest).SendString("Invalid price value")
+			return requestCtx.Status(fiber.StatusBadRequest).SendString("Invalid price value")
 		}
 
 		filter := func(order *models.Order) bool {
 			return order.Price > priceInt
 		}
 
-		orders, err = c.orderService.GetOrdersWithFilter(context, user.ID, filter)
+		orders, err = c.orderService.GetOrdersWithFilter(backgroundCtx, user.ID, filter)
 		if err != nil {
-			return ctx.Status(fiber.StatusInternalServerError).SendString("Error filtering orders")
+			return requestCtx.Status(fiber.StatusInternalServerError).SendString("Error filtering orders")
 		}
 	} else {
 		var err error
-		orders, err = c.orderService.GetOrders(context, user.ID)
+		orders, err = c.orderService.GetOrders(backgroundCtx, user.ID)
 		if err != nil {
-			return ctx.Status(fiber.StatusInternalServerError).SendString("Error loading orders")
+			return requestCtx.Status(fiber.StatusInternalServerError).SendString("Error loading orders")
 		}
 	}
 
@@ -106,34 +109,36 @@ func (c *OrdersController) GetOrders(ctx fiber.Ctx) error {
 	for i, order := range orders {
 		orderResponses[i] = transports.MapToOrderResponse(*order)
 	}
-	return ctx.Status(fiber.StatusOK).JSON(orderResponses)
+	return requestCtx.Status(fiber.StatusOK).JSON(orderResponses)
 
 }
 
 // GetOrder handles "/orders/{id}" with method "GET"
-func (c *OrdersController) GetOrder(ctx fiber.Ctx) error {
+func (c *OrdersController) GetOrder(requestCtx fiber.Ctx) error {
 
-	orderId := ctx.Params("id")
-	logger := log.GetFiberLogger(ctx).With().Str("orderId", orderId).Logger()
-	log.SetFiberLogger(ctx, &logger)
-	logContext := log.NewBackgroundContext(&logger)
-	utils.LogAction(logContext, compOrdersController, "GetOrder")
+	orderId := requestCtx.Params("id")
+	logger := log.GetFiberLogger(requestCtx).With().Str("orderId", orderId).Logger()
+	log.SetFiberLogger(requestCtx, &logger)
+	backgroundCtx := log.NewBackgroundContext(&logger)
+	utils.LogAction(backgroundCtx, compOrdersController, "GetOrder")
 
 	oid, err := strconv.Atoi(orderId)
 	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+		return requestCtx.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
 
-	context := context.WithValue(logContext, "orderId", oid)
+	backgroundCtx = context.WithValue(backgroundCtx, "orderId", oid)
 
-	userId := ctx.Locals(constants.AuthenticatedUserIdKey).(int)
+	user := requestCtx.Locals(constants.AuthenticatedUserKey).(models.User)
+	backgroundCtx = context.WithValue(backgroundCtx, constants.AuthenticatedUserKey, &user)
+	backgroundCtx = context.WithValue(backgroundCtx, constants.AuthenticatedUserIdKey, user.ID)
 
-	order, err := c.orderService.GetOrder(context, userId, oid)
+	order, err := c.orderService.GetOrder(backgroundCtx, user.ID, oid)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		return requestCtx.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
 
 	orderResponse := transports.MapToOrderResponse(*order)
 
-	return ctx.Status(fiber.StatusOK).JSON(orderResponse)
+	return requestCtx.Status(fiber.StatusOK).JSON(orderResponse)
 }
