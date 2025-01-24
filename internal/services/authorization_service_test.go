@@ -70,7 +70,7 @@ func TestAuthorizationService_IsAuthorized(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			svc := NewAuthorizationService()
-			res, err := svc.IsAuthorized(ctx, tc.userId, tc.order)
+			res, err := svc.IsAuthorized(ctx, tc.userId, &tc.order)
 			tc.assertFunc(t, res, err)
 		})
 	}

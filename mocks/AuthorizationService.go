@@ -15,21 +15,21 @@ type AuthorizationService struct {
 }
 
 // IsAuthorized provides a mock function with given fields: ctx, userId, order
-func (_m *AuthorizationService) IsAuthorized(ctx context.Context, userId int, order models.Order) (bool, error) {
+func (_m *AuthorizationService) IsAuthorized(ctx context.Context, userId int, order *models.Order) (bool, error) {
 	ret := _m.Called(ctx, userId, order)
 
 	var r0 bool
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int, models.Order) (bool, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int, *models.Order) (bool, error)); ok {
 		return rf(ctx, userId, order)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, int, models.Order) bool); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int, *models.Order) bool); ok {
 		r0 = rf(ctx, userId, order)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, int, models.Order) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, int, *models.Order) error); ok {
 		r1 = rf(ctx, userId, order)
 	} else {
 		r1 = ret.Error(1)

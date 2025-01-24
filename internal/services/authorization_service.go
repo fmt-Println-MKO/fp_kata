@@ -10,7 +10,7 @@ import (
 const compAuthorizationService = "AuthorizationService"
 
 type AuthorizationService interface {
-	IsAuthorized(ctx context.Context, userId int, order models.Order) (bool, error)
+	IsAuthorized(ctx context.Context, userId int, order *models.Order) (bool, error)
 }
 
 type authorizationService struct{}
@@ -19,7 +19,7 @@ func NewAuthorizationService() AuthorizationService {
 	return &authorizationService{}
 }
 
-func (a *authorizationService) IsAuthorized(ctx context.Context, userId int, order models.Order) (bool, error) {
+func (a *authorizationService) IsAuthorized(ctx context.Context, userId int, order *models.Order) (bool, error) {
 	utils.LogAction(ctx, compAuthorizationService, "isAuthorized")
 
 	if userId == 0 {
