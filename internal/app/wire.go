@@ -31,6 +31,7 @@ var AppModulesSet = wire.NewSet(
 	services.NewUsersService,
 	services.NewPaymentsService,
 	services.NewOrdersService,
+	services.NewAuthorizationService,
 
 	// Controllers
 	controllers.NewUsersController,

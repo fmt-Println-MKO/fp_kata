@@ -2,11 +2,14 @@ package controllers
 
 import (
 	"fp_kata/common/constants"
+	"fp_kata/common/utils"
 	"fp_kata/internal/services"
 	"fp_kata/pkg/log"
 	"fp_kata/pkg/transports"
 	"github.com/gofiber/fiber/v3"
 )
+
+const compUsersController = "UsersController"
 
 // UsersController handles user-related operations
 type UsersController struct {
@@ -27,10 +30,10 @@ func (c *UsersController) RegisterUserRoutes(app *fiber.App, authMiddleware fibe
 // SignUp creates a new user
 func (c *UsersController) SignUp(ctx fiber.Ctx) error {
 	logger := log.GetFiberLogger(ctx).With().Logger()
+	context := log.NewBackgroundContext(&logger)
 
-	logger.Debug().Str("comp", "UsersController").Str("func", "SignUp").Send()
+	utils.LogAction(context, compUsersController, "SignUp")
 
-	log.SetFiberLogger(ctx, &logger)
 	userRequest := new(transports.UserCreateRequest)
 
 	if err := ctx.Bind().Body(userRequest); err != nil {
@@ -45,7 +48,6 @@ func (c *UsersController) SignUp(ctx fiber.Ctx) error {
 			"error": "Invalid input",
 		})
 	}
-	context := log.NewBackgroundContext(&logger)
 
 	newUser, err := c.userService.SignUp(context, *user)
 	if err != nil {
@@ -59,7 +61,8 @@ func (c *UsersController) SignUp(ctx fiber.Ctx) error {
 // GetUser retrieves a user by their ID
 func (c *UsersController) GetUser(ctx fiber.Ctx) error {
 	logger := log.GetFiberLogger(ctx).With().Logger()
-	logger.Debug().Str("comp", "UsersController").Str("func", "GetUser").Send()
+	context := log.NewBackgroundContext(&logger)
+	utils.LogAction(context, compUsersController, "GetUser")
 
 	userIdValue := ctx.Locals(constants.AuthenticatedUserIdKey)
 	if userIdValue == nil {
@@ -69,7 +72,6 @@ func (c *UsersController) GetUser(ctx fiber.Ctx) error {
 	}
 	userId := userIdValue.(int)
 
-	context := log.NewBackgroundContext(&logger)
 	user, err := c.userService.GetUserByID(context, userId)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

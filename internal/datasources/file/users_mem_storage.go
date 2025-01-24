@@ -2,10 +2,12 @@ package file
 
 import (
 	"context"
+	"fp_kata/common/utils"
 	"fp_kata/internal/datasources"
 	"fp_kata/internal/datasources/dsmodels"
-	"fp_kata/pkg/log"
 )
+
+const compUsersStorage = "UsersStorage"
 
 type inMemoryUsersStorage struct {
 	store  map[int]dsmodels.User
@@ -20,8 +22,8 @@ func NewUsersStorage() datasources.UsersDatasource {
 }
 
 func (s *inMemoryUsersStorage) Create(ctx context.Context, user dsmodels.User) (dsmodels.User, bool) {
-	logger := log.GetLogger(ctx)
-	logger.Debug().Str("comp", "UsersDatasource").Str("func", "Create").Send()
+	utils.LogAction(ctx, compUsersStorage, "Create")
+
 	s.lastID++
 
 	if s.lastID > 10 {
@@ -34,8 +36,7 @@ func (s *inMemoryUsersStorage) Create(ctx context.Context, user dsmodels.User) (
 }
 
 func (s *inMemoryUsersStorage) Read(ctx context.Context, id int) (dsmodels.User, bool) {
-	logger := log.GetLogger(ctx)
-	logger.Debug().Str("comp", "UsersDatasource").Str("func", "Read").Send()
+	utils.LogAction(ctx, compUsersStorage, "Read")
 	user, exists := s.store[id]
 	if !exists {
 		return dsmodels.User{}, false
@@ -44,8 +45,7 @@ func (s *inMemoryUsersStorage) Read(ctx context.Context, id int) (dsmodels.User,
 }
 
 func (s *inMemoryUsersStorage) Update(ctx context.Context, id int, user dsmodels.User) bool {
-	logger := log.GetLogger(ctx)
-	logger.Debug().Str("comp", "UsersDatasource").Str("func", "Update").Send()
+	utils.LogAction(ctx, compUsersStorage, "Update")
 
 	_, exists := s.store[id]
 	if exists {
@@ -55,8 +55,7 @@ func (s *inMemoryUsersStorage) Update(ctx context.Context, id int, user dsmodels
 }
 
 func (s *inMemoryUsersStorage) Delete(ctx context.Context, id int) bool {
-	logger := log.GetLogger(ctx)
-	logger.Debug().Str("comp", "UsersDatasource").Str("func", "Delete").Send()
+	utils.LogAction(ctx, compUsersStorage, "Delete")
 
 	if _, exists := s.store[id]; !exists {
 		return false

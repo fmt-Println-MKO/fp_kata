@@ -11,6 +11,9 @@ import (
 const LogFiberContextKey = "logger"
 const LogContextKey = "logger"
 
+const Comp = "comp"
+const Func = "func"
+
 func InitLogger() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 }

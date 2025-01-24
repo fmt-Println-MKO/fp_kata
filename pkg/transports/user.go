@@ -42,12 +42,12 @@ func extractName(userRequest *UserCreateRequest) (username string) {
 		if len(parts) > 1 {
 			username = parts[0]
 		} else {
-			rand.Seed(time.Now().UnixNano())
-			username = fmt.Sprintf("User%d", rand.Intn(999)+100)
+			randGen := rand.New(rand.NewSource(time.Now().UnixNano()))
+			username = fmt.Sprintf("User%d", randGen.Intn(999)+100)
 		}
 	} else {
-		rand.Seed(time.Now().UnixNano())
-		username = fmt.Sprintf("User%d", rand.Intn(90000)+10000)
+		randGen := rand.New(rand.NewSource(time.Now().UnixNano()))
+		username = fmt.Sprintf("User%d", randGen.Intn(90000)+10000)
 	}
 	return username
 }

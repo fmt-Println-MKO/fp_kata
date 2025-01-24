@@ -40,17 +40,17 @@ func (_m *PaymentsService) GetPaymentByID(ctx context.Context, id int) (*models.
 	return r0, r1
 }
 
-// GetPaymentsByOrder provides a mock function with given fields: ctx, order
-func (_m *PaymentsService) GetPaymentsByOrder(ctx context.Context, order int) ([]*models.Payment, error) {
-	ret := _m.Called(ctx, order)
+// GetPaymentsByOrder provides a mock function with given fields: ctx, orderId
+func (_m *PaymentsService) GetPaymentsByOrder(ctx context.Context, orderId int) ([]*models.Payment, error) {
+	ret := _m.Called(ctx, orderId)
 
 	var r0 []*models.Payment
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, int) ([]*models.Payment, error)); ok {
-		return rf(ctx, order)
+		return rf(ctx, orderId)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, int) []*models.Payment); ok {
-		r0 = rf(ctx, order)
+		r0 = rf(ctx, orderId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*models.Payment)
@@ -58,7 +58,7 @@ func (_m *PaymentsService) GetPaymentsByOrder(ctx context.Context, order int) ([
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, int) error); ok {
-		r1 = rf(ctx, order)
+		r1 = rf(ctx, orderId)
 	} else {
 		r1 = ret.Error(1)
 	}

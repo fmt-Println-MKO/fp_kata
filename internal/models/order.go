@@ -41,15 +41,15 @@ func (o *Order) ToDSModel() *dsmodels.Order {
 }
 
 // MapToOrder maps the fields from a dsmodels.Order struct to the Order struct
-func MapToOrder(dso dsmodels.Order, payments []*Payment, user *User) *Order {
+func MapToOrder(dso dsmodels.Order) *Order {
 	return &Order{
 		ID:             dso.ID,
 		ProductID:      dso.ProductID,
 		Quantity:       dso.Quantity,
 		Price:          dso.Price,
 		OrderDate:      dso.OrderDate,
-		Payments:       payments,
-		User:           user,
+		Payments:       []*Payment{},
+		User:           &User{ID: dso.UserId},
 		HasWeightables: dso.HasWeightables,
 	}
 

@@ -28,7 +28,8 @@ func InitializeAppModules() *AppModules {
 	ordersDatasource := file.NewOrdersStorage()
 	paymentsDatasource := yugabyte.NewPaymentsStorage()
 	paymentsService := services.NewPaymentsService(paymentsDatasource)
-	ordersService := services.NewOrdersService(ordersDatasource, paymentsService)
+	authorizationService := services.NewAuthorizationService()
+	ordersService := services.NewOrdersService(ordersDatasource, paymentsService, authorizationService)
 	ordersController := controllers.NewOrdersController(ordersService)
 	appModules := newAppModules(v, usersController, ordersController)
 	return appModules
@@ -43,7 +44,7 @@ type AppModules struct {
 }
 
 // Define a ProviderSet that provides AuthService once.
-var AppModulesSet = wire.NewSet(file.NewOrdersStorage, file.NewUsersStorage, yugabyte.NewPaymentsStorage, services.NewAuthService, services.NewUsersService, services.NewPaymentsService, services.NewOrdersService, controllers.NewUsersController, controllers.NewOrdersController, middleware.AuthMiddleware, newAppModules)
+var AppModulesSet = wire.NewSet(file.NewOrdersStorage, file.NewUsersStorage, yugabyte.NewPaymentsStorage, services.NewAuthService, services.NewUsersService, services.NewPaymentsService, services.NewOrdersService, services.NewAuthorizationService, controllers.NewUsersController, controllers.NewOrdersController, middleware.AuthMiddleware, newAppModules)
 
 // newAppModules ties together all the pieces into a single struct.
 func newAppModules(

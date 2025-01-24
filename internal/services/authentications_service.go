@@ -4,10 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"fp_kata/common/utils"
 	"fp_kata/internal/models"
 	"fp_kata/pkg/log"
 	"sync"
 )
+
+const compAuthenticationService = "AuthenticationService"
 
 // AuthService is the interface for the authentication service.
 type AuthService interface {
@@ -34,7 +37,7 @@ func NewAuthService() AuthService {
 // GenerateAuthToken generates an authentication token for the provided user and stores it in memory.
 func (s *authService) GenerateAuthToken(ctx context.Context, user models.User) (string, error) {
 	logger := log.GetLogger(ctx)
-	logger.Debug().Str("comp", "AuthService").Str("func", "GenerateAuthToken").Send()
+	utils.LogAction(ctx, compAuthenticationService, "GenerateAuthToken")
 
 	if user.ID == 0 {
 		return "", errors.New("invalid user")
@@ -47,24 +50,25 @@ func (s *authService) GenerateAuthToken(ctx context.Context, user models.User) (
 
 	// Store the token and associated user ID.
 	s.tokenStorage[authToken] = user.ID
-	logger.Debug().Str("comp", "AuthService").Str("func", "GenerateAuthToken").Int("user_id", user.ID).Str("auth_token", authToken).Send()
+	logger.Debug().Str(log.Comp, compAuthenticationService).Str("func", "GenerateAuthToken").Int("user_id", user.ID).Str("auth_token", authToken).Send()
 	return authToken, nil
 }
 
 // GetUserIDByToken retrieves the user ID associated with the given auth token.
 func (s *authService) GetUserIDByToken(ctx context.Context, authToken string) (int, error) {
 	logger := log.GetLogger(ctx)
-	logger.Debug().Str("comp", "AuthService").Str("func", "GetUserIDByToken").Send()
+	utils.LogAction(ctx, compAuthenticationService, "GetUserIDByToken")
+
 	if authToken == "" {
 		return 0, errors.New("invalid auth token")
 	}
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	logger.Debug().Str("comp", "AuthService").Str("func", "GetUserIDByToken").Str("auth_token", authToken).Send()
+	logger.Debug().Str(log.Comp, compAuthenticationService).Str("func", "GetUserIDByToken").Str("auth_token", authToken).Send()
 
 	userID, exists := s.tokenStorage[authToken]
-	logger.Debug().Str("comp", "AuthService").Str("func", "GetUserIDByToken").Str("auth_token", authToken).Int("user_id", userID).Bool("exists", exists).Send()
+	logger.Debug().Str(log.Comp, compAuthenticationService).Str("func", "GetUserIDByToken").Str("auth_token", authToken).Int("user_id", userID).Bool("exists", exists).Send()
 	if !exists {
 		return 0, errors.New("auth token not found")
 	}
