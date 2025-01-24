@@ -3,11 +3,13 @@ package yugabyte
 import (
 	"context"
 	"fmt"
+	"fp_kata/common/utils"
 	"fp_kata/internal/datasources"
 	"fp_kata/internal/datasources/dsmodels"
-	"fp_kata/pkg/log"
 	"sort"
 )
+
+const compPaymentsStorage = "PaymentsStorage"
 
 type inMemoryPaymentsStorage struct {
 	payments map[int]dsmodels.Payment
@@ -18,8 +20,8 @@ func NewPaymentsStorage() datasources.PaymentsDatasource {
 }
 
 func (s inMemoryPaymentsStorage) Create(ctx context.Context, p dsmodels.Payment) (dsmodels.Payment, error) {
-	logger := log.GetLogger(ctx)
-	logger.Debug().Str("comp", "PaymentsDatasource").Str("func", "Create").Send()
+	utils.LogAction(ctx, compPaymentsStorage, "Create")
+
 	id := len(s.payments) + 1
 	p.Id = id
 	s.payments[id] = p
@@ -27,8 +29,8 @@ func (s inMemoryPaymentsStorage) Create(ctx context.Context, p dsmodels.Payment)
 }
 
 func (s inMemoryPaymentsStorage) Read(ctx context.Context, id int) (dsmodels.Payment, error) {
-	logger := log.GetLogger(ctx)
-	logger.Debug().Str("comp", "PaymentsDatasource").Str("func", "Read").Send()
+	utils.LogAction(ctx, compPaymentsStorage, "Read")
+
 	if p, exists := s.payments[id]; exists {
 		return p, nil
 	}
@@ -36,8 +38,8 @@ func (s inMemoryPaymentsStorage) Read(ctx context.Context, id int) (dsmodels.Pay
 }
 
 func (s inMemoryPaymentsStorage) Update(ctx context.Context, p dsmodels.Payment) (dsmodels.Payment, error) {
-	logger := log.GetLogger(ctx)
-	logger.Debug().Str("comp", "PaymentsDatasource").Str("func", "Update").Send()
+	utils.LogAction(ctx, compPaymentsStorage, "Update")
+
 	if _, exists := s.payments[p.Id]; exists {
 		s.payments[p.Id] = p
 		return p, nil
@@ -46,8 +48,8 @@ func (s inMemoryPaymentsStorage) Update(ctx context.Context, p dsmodels.Payment)
 }
 
 func (s inMemoryPaymentsStorage) Delete(ctx context.Context, id int) error {
-	logger := log.GetLogger(ctx)
-	logger.Debug().Str("comp", "PaymentsDatasource").Str("func", "Delete").Send()
+	utils.LogAction(ctx, compPaymentsStorage, "Delete")
+
 	if _, exists := s.payments[id]; exists {
 		delete(s.payments, id)
 		return nil
@@ -56,8 +58,7 @@ func (s inMemoryPaymentsStorage) Delete(ctx context.Context, id int) error {
 }
 
 func (s inMemoryPaymentsStorage) AllByOrderId(ctx context.Context, orderId int) ([]dsmodels.Payment, error) {
-	logger := log.GetLogger(ctx)
-	logger.Debug().Str("comp", "PaymentsDatasource").Str("func", "AllByOrderId").Send()
+	utils.LogAction(ctx, compPaymentsStorage, "AllByOrderId")
 
 	var payments []dsmodels.Payment
 	for _, payment := range s.payments {

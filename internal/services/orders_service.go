@@ -7,8 +7,9 @@ import (
 	"fp_kata/internal/datasources"
 	"fp_kata/internal/datasources/dsmodels"
 	"fp_kata/internal/models"
-	"fp_kata/pkg/log"
 )
+
+const compOrdersService = "OrdersService"
 
 type OrdersService interface {
 	StoreOrder(ctx context.Context, userId int, order models.Order) (*models.Order, error)
@@ -29,8 +30,7 @@ func NewOrdersService(storage datasources.OrdersDatasource, paymentService Payme
 const errUserRequired = "user id is required"
 
 func (service *ordersService) StoreOrder(ctx context.Context, userId int, order models.Order) (*models.Order, error) {
-	logger := log.GetLogger(ctx)
-	logger.Debug().Str("comp", "OrdersService").Str("func", "StoreOrder").Send()
+	utils.LogAction(ctx, compOrdersService, "StoreOrder")
 
 	// Validate user
 	if userId == 0 || order.User == nil || order.User.ID != userId {
@@ -84,8 +84,7 @@ func (service *ordersService) processPayments(ctx context.Context, order *models
 }
 
 func (service *ordersService) GetOrder(ctx context.Context, userId int, id int) (*models.Order, error) {
-	logger := log.GetLogger(ctx)
-	logger.Debug().Str("comp", "OrdersService").Str("func", "GetOrder").Send()
+	utils.LogAction(ctx, compOrdersService, "GetOrder")
 
 	if userId == 0 {
 		return nil, errors.New("user id is required")
@@ -109,9 +108,7 @@ func (service *ordersService) GetOrder(ctx context.Context, userId int, id int) 
 }
 
 func (service *ordersService) GetOrders(ctx context.Context, userId int) ([]*models.Order, error) {
-
-	logger := log.GetLogger(ctx)
-	logger.Debug().Str("comp", "OrdersService").Str("func", "GetOrders").Send()
+	utils.LogAction(ctx, compOrdersService, "GetOrders")
 
 	if userId == 0 {
 		return nil, errors.New("user id is required")
@@ -135,8 +132,8 @@ func (service *ordersService) GetOrders(ctx context.Context, userId int) ([]*mod
 }
 
 func (service *ordersService) GetOrdersWithFilter(ctx context.Context, userId int, filter func(order *models.Order) bool) ([]*models.Order, error) {
-	logger := log.GetLogger(ctx)
-	logger.Debug().Str("comp", "OrdersService").Str("func", "GetOrdersWithFilter").Send()
+	utils.LogAction(ctx, compOrdersService, "GetOrdersWithFilter")
+
 	if userId == 0 {
 		return nil, errors.New("user id is required")
 	}

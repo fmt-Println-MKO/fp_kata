@@ -7,7 +7,7 @@ import (
 	"fp_kata/internal/models"
 )
 
-const comp = "AuthorizationService"
+const compAuthorizationService = "AuthorizationService"
 
 type AuthorizationService interface {
 	isAuthorized(ctx context.Context, userId int, order models.Order) (bool, error)
@@ -20,8 +20,8 @@ func NewAuthorizationService() AuthorizationService {
 }
 
 func (a authorizationService) isAuthorized(ctx context.Context, userId int, order models.Order) (bool, error) {
-	utils.LogAction(ctx, comp, "isAuthorized")
-	
+	utils.LogAction(ctx, compAuthorizationService, "isAuthorized")
+
 	if userId == 0 {
 		return false, errors.New("userId is required")
 	}

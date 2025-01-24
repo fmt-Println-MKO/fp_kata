@@ -2,11 +2,13 @@ package services
 
 import (
 	"context"
+	"fp_kata/common/utils"
 	"fp_kata/internal/datasources"
 	"fp_kata/internal/datasources/dsmodels"
 	"fp_kata/internal/models"
-	"fp_kata/pkg/log"
 )
+
+const compPaymentsService = "PaymentsService"
 
 type PaymentsService interface {
 	StorePayment(ctx context.Context, payment models.Payment) (*models.Payment, error)
@@ -23,8 +25,8 @@ func NewPaymentsService(storage datasources.PaymentsDatasource) PaymentsService 
 }
 
 func (service *paymentsService) StorePayment(ctx context.Context, payment models.Payment) (*models.Payment, error) {
-	logger := log.GetLogger(ctx)
-	logger.Debug().Str("comp", "PaymentsService").Str("func", "StorePayment").Send()
+	utils.LogAction(ctx, compPaymentsService, "StorePayment")
+
 	createdDsPayment := dsmodels.Payment{}
 	var err error
 	if payment.Id == 0 {
@@ -40,8 +42,8 @@ func (service *paymentsService) StorePayment(ctx context.Context, payment models
 }
 
 func (service *paymentsService) GetPaymentByID(ctx context.Context, id int) (*models.Payment, error) {
-	logger := log.GetLogger(ctx)
-	logger.Debug().Str("comp", "PaymentsService").Str("func", "GetPaymentByID").Send()
+	utils.LogAction(ctx, compPaymentsService, "GetPaymentByID")
+
 	dsPayment, err := service.storage.Read(ctx, id)
 	if err != nil {
 		return nil, err
@@ -51,8 +53,7 @@ func (service *paymentsService) GetPaymentByID(ctx context.Context, id int) (*mo
 }
 
 func (service *paymentsService) GetPaymentsByOrder(ctx context.Context, orderId int) ([]*models.Payment, error) {
-	logger := log.GetLogger(ctx)
-	logger.Debug().Str("comp", "PaymentsService").Str("func", "GetPaymentsByOrder").Send()
+	utils.LogAction(ctx, compPaymentsService, "GetPaymentsByOrder")
 
 	dsPayments, err := service.storage.AllByOrderId(ctx, orderId)
 	if err != nil {

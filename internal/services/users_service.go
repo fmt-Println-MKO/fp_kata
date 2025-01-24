@@ -3,10 +3,12 @@ package services
 import (
 	"context"
 	"errors"
+	"fp_kata/common/utils"
 	"fp_kata/internal/datasources"
 	"fp_kata/internal/models"
-	"fp_kata/pkg/log"
 )
+
+const compUsersService = "UsersService"
 
 type UsersService interface {
 	GetUserByID(ctx context.Context, id int) (*models.User, error)
@@ -26,8 +28,8 @@ func NewUsersService(storage datasources.UsersDatasource, authService AuthServic
 }
 
 func (us *usersService) GetUserByID(ctx context.Context, id int) (*models.User, error) {
-	logger := log.GetLogger(ctx)
-	logger.Debug().Str("comp", "UsersService").Str("func", "GetUserByID").Send()
+	utils.LogAction(ctx, compUsersService, "GetUserByID")
+
 	dsUser, exists := us.storage.Read(ctx, id)
 	if !exists {
 		return nil, errors.New("no user found for id")
@@ -37,8 +39,8 @@ func (us *usersService) GetUserByID(ctx context.Context, id int) (*models.User, 
 }
 
 func (us *usersService) SignUp(ctx context.Context, user models.User) (*models.User, error) {
-	logger := log.GetLogger(ctx)
-	logger.Debug().Str("comp", "UsersService").Str("func", "SignUp").Send()
+	utils.LogAction(ctx, compUsersService, "SignUp")
+
 	dsUser := user.ToDSModel()
 	createdDsUser, created := us.storage.Create(ctx, *dsUser)
 	if !created {
