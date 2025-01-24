@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fp_kata/common/constants"
 	"fp_kata/common/utils"
 	"fp_kata/internal/datasources"
 	"fp_kata/internal/datasources/dsmodels"
@@ -22,6 +23,7 @@ type ordersService struct {
 	storage              datasources.OrdersDatasource
 	paymentService       PaymentsService
 	authorizationService AuthorizationService
+	userService          UsersService
 }
 
 func NewOrdersService(storage datasources.OrdersDatasource, paymentService PaymentsService, authorizationService AuthorizationService) OrdersService {
@@ -63,7 +65,9 @@ func (service *ordersService) StoreOrder(ctx context.Context, userId int, order 
 	}
 
 	// Map stored order to the response model
-	newOrder := models.MapToOrder(*storedOrderModel, storedPayments, order.User)
+	newOrder := models.MapToOrder(*storedOrderModel)
+	newOrder.Payments = storedPayments
+
 	return newOrder, nil
 }
 
@@ -95,16 +99,12 @@ func (service *ordersService) GetOrder(ctx context.Context, userId int, id int) 
 	if err != nil {
 		return nil, err
 	}
-	if dsOrder.UserId != userId {
-		return nil, errors.New("user is not authorized to access this order")
-	}
 
-	payments, err := service.paymentService.GetPaymentsByOrder(ctx, id)
+	order, err := service.processDsOrder(ctx, userId, *dsOrder)
 	if err != nil {
 		return nil, err
 	}
 
-	order := models.MapToOrder(*dsOrder, payments, &models.User{ID: dsOrder.UserId})
 	return order, nil
 }
 
@@ -121,11 +121,10 @@ func (service *ordersService) GetOrders(ctx context.Context, userId int) ([]*mod
 
 	var orders []*models.Order
 	for _, dsOrder := range dsOrders {
-		payments, err := service.paymentService.GetPaymentsByOrder(ctx, dsOrder.ID)
+		order, err := service.processDsOrder(ctx, userId, dsOrder)
 		if err != nil {
 			return nil, err
 		}
-		order := models.MapToOrder(dsOrder, payments, &models.User{ID: dsOrder.UserId})
 		orders = append(orders, order)
 	}
 
@@ -145,9 +144,9 @@ func (service *ordersService) GetOrdersWithFilter(ctx context.Context, userId in
 
 	var filteredOrders []*models.Order
 	for _, dsOrder := range allDsOrders {
-		order := models.MapToOrder(dsOrder, []*models.Payment{}, &models.User{ID: dsOrder.UserId})
+		order := models.MapToOrder(dsOrder)
 		if filter(order) {
-			order.Payments, err = service.paymentService.GetPaymentsByOrder(ctx, order.ID)
+			order, err := service.processOrder(ctx, userId, order)
 			if err != nil {
 				return nil, err
 			}
@@ -156,4 +155,65 @@ func (service *ordersService) GetOrdersWithFilter(ctx context.Context, userId in
 	}
 
 	return filteredOrders, nil
+}
+
+func (service *ordersService) processDsOrder(ctx context.Context, userId int, storedOrder dsmodels.Order) (*models.Order, error) {
+	// Map the stored order
+	order := models.MapToOrder(storedOrder)
+
+	order, err := service.processOrder(ctx, userId, order)
+
+	if err != nil {
+		return nil, err
+	}
+	return order, nil
+}
+
+func (service *ordersService) processOrder(ctx context.Context, userId int, order *models.Order) (*models.Order, error) {
+
+	// Authorization check
+	isAuthorized, err := service.authorizationService.IsAuthorized(ctx, userId, order)
+	if err != nil {
+		return nil, err
+	}
+	if !isAuthorized {
+		return nil, errors.New("user is not authorized to access this order")
+	}
+
+	// Add payments to the order
+	order, err = service.addPayments(ctx, order)
+	if err != nil {
+		return nil, err
+	}
+
+	// Add user to the order
+	order, err = service.addUser(ctx, order)
+	if err != nil {
+		return nil, err
+	}
+
+	return order, nil
+}
+
+func (service *ordersService) addPayments(ctx context.Context, order *models.Order) (*models.Order, error) {
+	utils.LogAction(ctx, compOrdersService, "addPayment")
+
+	payments, err := service.paymentService.GetPaymentsByOrder(ctx, order.ID)
+	if err != nil {
+		return nil, err
+	}
+	order.Payments = payments
+	return order, nil
+}
+
+func (service *ordersService) addUser(ctx context.Context, order *models.Order) (*models.Order, error) {
+	utils.LogAction(ctx, compOrdersService, "addPayment")
+
+	user := ctx.Value(constants.AuthenticatedUserKey).(*models.User)
+
+	if user == nil {
+		return nil, errors.New(errUserRequired)
+	}
+	order.User = user
+	return order, nil
 }
