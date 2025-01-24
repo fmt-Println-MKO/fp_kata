@@ -1,10 +1,12 @@
 package transports
 
 import (
-	"fp_kata/internal/models"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"fp_kata/internal/models"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestToOrder(t *testing.T) {
