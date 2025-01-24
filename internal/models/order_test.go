@@ -142,8 +142,6 @@ func TestMapToOrder(t *testing.T) {
 	tests := []struct {
 		name            string
 		inputOrder      func() dsmodels.Order
-		inputPayments   func() []*Payment
-		inputUser       func() *User
 		expectedOutput  func() *Order
 		expectedMessage string
 	}{
@@ -161,12 +159,6 @@ func TestMapToOrder(t *testing.T) {
 					HasWeightables: false,
 				}
 			},
-			inputPayments: func() []*Payment {
-				return []*Payment{{Id: 201}}
-			},
-			inputUser: func() *User {
-				return &User{ID: 301}
-			},
 			expectedOutput: func() *Order {
 				return &Order{
 					ID:             1,
@@ -174,7 +166,7 @@ func TestMapToOrder(t *testing.T) {
 					Quantity:       2,
 					Price:          15.5,
 					OrderDate:      time.Date(2023, 10, 10, 12, 0, 0, 0, time.UTC),
-					Payments:       []*Payment{{Id: 201}},
+					Payments:       []*Payment{},
 					User:           &User{ID: 301},
 					HasWeightables: false,
 				}
@@ -191,15 +183,9 @@ func TestMapToOrder(t *testing.T) {
 					Price:          20.0,
 					OrderDate:      time.Date(2023, 11, 5, 0, 0, 0, 0, time.UTC),
 					Payments:       []int{202},
-					UserId:         302,
+					UserId:         0,
 					HasWeightables: true,
 				}
-			},
-			inputPayments: func() []*Payment {
-				return []*Payment{{Id: 202}}
-			},
-			inputUser: func() *User {
-				return nil
 			},
 			expectedOutput: func() *Order {
 				return &Order{
@@ -208,8 +194,8 @@ func TestMapToOrder(t *testing.T) {
 					Quantity:       3,
 					Price:          20.0,
 					OrderDate:      time.Date(2023, 11, 5, 0, 0, 0, 0, time.UTC),
-					Payments:       []*Payment{{Id: 202}},
-					User:           nil,
+					Payments:       []*Payment{},
+					User:           &User{ID: 0},
 					HasWeightables: true,
 				}
 			},
@@ -229,12 +215,6 @@ func TestMapToOrder(t *testing.T) {
 					HasWeightables: false,
 				}
 			},
-			inputPayments: func() []*Payment {
-				return nil
-			},
-			inputUser: func() *User {
-				return &User{ID: 303}
-			},
 			expectedOutput: func() *Order {
 				return &Order{
 					ID:             3,
@@ -242,7 +222,7 @@ func TestMapToOrder(t *testing.T) {
 					Quantity:       1,
 					Price:          30.0,
 					OrderDate:      time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC),
-					Payments:       nil,
+					Payments:       []*Payment{},
 					User:           &User{ID: 303},
 					HasWeightables: false,
 				}
@@ -254,11 +234,9 @@ func TestMapToOrder(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			inputOrder := tt.inputOrder()
-			inputPayments := tt.inputPayments()
-			inputUser := tt.inputUser()
 			expectedOutput := tt.expectedOutput()
 
-			actualOutput := MapToOrder(inputOrder, inputPayments, inputUser)
+			actualOutput := MapToOrder(inputOrder)
 
 			assert.Equal(t, expectedOutput, actualOutput, tt.expectedMessage)
 		})
