@@ -36,7 +36,6 @@ func TestGetOrder(t *testing.T) {
 		name          string
 		initialOrders map[int]dsmodels.Order
 		orderID       int
-		expectedOrder *dsmodels.Order
 		validate      func(*testing.T, *dsmodels.Order, error)
 	}{
 		{
@@ -44,8 +43,7 @@ func TestGetOrder(t *testing.T) {
 			initialOrders: map[int]dsmodels.Order{
 				1: {ID: 1, UserId: 123, Payments: []int{1, 2}},
 			},
-			orderID:       1,
-			expectedOrder: &dsmodels.Order{ID: 1, UserId: 123, Payments: []int{1, 2}},
+			orderID: 1,
 			validate: func(t *testing.T, order *dsmodels.Order, err error) {
 				validateOrderMatches(t, &dsmodels.Order{ID: 1, UserId: 123, Payments: []int{1, 2}}, order, err)
 			},
@@ -55,15 +53,13 @@ func TestGetOrder(t *testing.T) {
 			initialOrders: map[int]dsmodels.Order{
 				1: {ID: 1, UserId: 123, Payments: []int{1, 2}},
 			},
-			orderID:       2,
-			expectedOrder: nil,
-			validate:      validateOrderNotFound,
+			orderID:  2,
+			validate: validateOrderNotFound,
 		},
 		{
 			name:          "EmptyOrdersStorage",
 			initialOrders: map[int]dsmodels.Order{},
 			orderID:       1,
-			expectedOrder: nil,
 			validate:      validateOrderNotFound,
 		},
 	}
@@ -82,11 +78,10 @@ func TestGetOrder(t *testing.T) {
 func TestGetAllOrdersForUser(t *testing.T) {
 
 	tests := []struct {
-		name           string
-		initialOrders  map[int]dsmodels.Order
-		userID         int
-		expectedOrders []dsmodels.Order
-		validate       func(*testing.T, []dsmodels.Order)
+		name          string
+		initialOrders map[int]dsmodels.Order
+		userID        int
+		validate      func(*testing.T, []dsmodels.Order)
 	}{
 		{
 			name: "UserHasOrders",
@@ -96,10 +91,6 @@ func TestGetAllOrdersForUser(t *testing.T) {
 				3: {ID: 3, UserId: 456},
 			},
 			userID: 123,
-			expectedOrders: []dsmodels.Order{
-				{ID: 1, UserId: 123},
-				{ID: 2, UserId: 123},
-			},
 			validate: func(t *testing.T, orders []dsmodels.Order) {
 				assert.Len(t, orders, 2, "unexpected number of orders returned")
 				assert.Equal(t, []dsmodels.Order{
@@ -113,17 +104,15 @@ func TestGetAllOrdersForUser(t *testing.T) {
 			initialOrders: map[int]dsmodels.Order{
 				1: {ID: 1, UserId: 789},
 			},
-			userID:         123,
-			expectedOrders: []dsmodels.Order{},
+			userID: 123,
 			validate: func(t *testing.T, orders []dsmodels.Order) {
 				assert.Empty(t, orders, "expected no orders for user but some were returned")
 			},
 		},
 		{
-			name:           "EmptyStorage",
-			initialOrders:  map[int]dsmodels.Order{},
-			userID:         123,
-			expectedOrders: []dsmodels.Order{},
+			name:          "EmptyStorage",
+			initialOrders: map[int]dsmodels.Order{},
+			userID:        123,
 			validate: func(t *testing.T, orders []dsmodels.Order) {
 				assert.Empty(t, orders, "expected no orders for user in empty storage but some were returned")
 			},
@@ -202,7 +191,6 @@ func TestUpdateOrder(t *testing.T) {
 		name          string
 		initialOrders map[int]dsmodels.Order
 		updateOrder   dsmodels.Order
-		expectedOrder *dsmodels.Order
 		expectedError string
 		validate      func(*testing.T, *dsmodels.Order, error)
 	}{
@@ -212,7 +200,6 @@ func TestUpdateOrder(t *testing.T) {
 				1: {ID: 1, UserId: 123, Quantity: 2},
 			},
 			updateOrder:   dsmodels.Order{ID: 1, UserId: 123, Quantity: 3},
-			expectedOrder: &dsmodels.Order{ID: 1, UserId: 123, Quantity: 3},
 			expectedError: "",
 			validate: func(t *testing.T, order *dsmodels.Order, err error) {
 				assert.NoError(t, err, "unexpected error while updating existing order")
@@ -225,7 +212,6 @@ func TestUpdateOrder(t *testing.T) {
 				1: {ID: 1, UserId: 123, Quantity: 2},
 			},
 			updateOrder:   dsmodels.Order{ID: 2, UserId: 456, Quantity: 1},
-			expectedOrder: nil,
 			expectedError: "order not found",
 			validate: func(t *testing.T, order *dsmodels.Order, err error) {
 				assert.Nil(t, order, "expected no order to be returned for non-existent order ID")
@@ -236,7 +222,6 @@ func TestUpdateOrder(t *testing.T) {
 			name:          "UpdateOrderInEmptyStorage",
 			initialOrders: map[int]dsmodels.Order{},
 			updateOrder:   dsmodels.Order{ID: 1, UserId: 123, Quantity: 1},
-			expectedOrder: nil,
 			expectedError: "order not found",
 			validate: func(t *testing.T, order *dsmodels.Order, err error) {
 				assert.Nil(t, order, "expected no order to be returned for empty order storage")
@@ -261,7 +246,6 @@ func TestInsertOrder(t *testing.T) {
 		name          string
 		initialOrders map[int]dsmodels.Order
 		orderToInsert dsmodels.Order
-		expectedOrder *dsmodels.Order
 		expectedError string
 		validate      func(*testing.T, *dsmodels.Order, map[int]dsmodels.Order, error)
 	}{
@@ -271,7 +255,6 @@ func TestInsertOrder(t *testing.T) {
 				1: {ID: 1, UserId: 123, Quantity: 1},
 			},
 			orderToInsert: dsmodels.Order{ID: 2, UserId: 456, Quantity: 2},
-			expectedOrder: &dsmodels.Order{ID: 2, UserId: 456, Quantity: 2},
 			expectedError: "",
 			validate: func(t *testing.T, order *dsmodels.Order, orders map[int]dsmodels.Order, err error) {
 				assert.NoError(t, err, "unexpected error when inserting a new order")
@@ -287,7 +270,6 @@ func TestInsertOrder(t *testing.T) {
 				1: {ID: 1, UserId: 123, Quantity: 1},
 			},
 			orderToInsert: dsmodels.Order{ID: 1, UserId: 123, Quantity: 2},
-			expectedOrder: nil,
 			expectedError: "order already exists",
 			validate: func(t *testing.T, order *dsmodels.Order, orders map[int]dsmodels.Order, err error) {
 				assert.Nil(t, order, "expected no order to be returned when inserting existing order")
@@ -302,7 +284,6 @@ func TestInsertOrder(t *testing.T) {
 			name:          "InsertIntoEmptyStorage",
 			initialOrders: map[int]dsmodels.Order{},
 			orderToInsert: dsmodels.Order{ID: 1, UserId: 123, Quantity: 1},
-			expectedOrder: &dsmodels.Order{ID: 1, UserId: 123, Quantity: 1},
 			expectedError: "",
 			validate: func(t *testing.T, order *dsmodels.Order, orders map[int]dsmodels.Order, err error) {
 				assert.NoError(t, err, "unexpected error when inserting into empty storage")
