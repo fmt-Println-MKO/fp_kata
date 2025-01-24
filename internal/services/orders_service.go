@@ -19,12 +19,13 @@ type OrdersService interface {
 }
 
 type ordersService struct {
-	storage        datasources.OrdersDatasource
-	paymentService PaymentsService
+	storage              datasources.OrdersDatasource
+	paymentService       PaymentsService
+	authorizationService AuthorizationService
 }
 
-func NewOrdersService(storage datasources.OrdersDatasource, paymentService PaymentsService) OrdersService {
-	return &ordersService{storage: storage, paymentService: paymentService}
+func NewOrdersService(storage datasources.OrdersDatasource, paymentService PaymentsService, authorizationService AuthorizationService) OrdersService {
+	return &ordersService{storage: storage, paymentService: paymentService, authorizationService: authorizationService}
 }
 
 const errUserRequired = "user id is required"
