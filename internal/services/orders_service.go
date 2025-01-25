@@ -61,15 +61,17 @@ func (service *ordersService) StoreOrder(ctx context.Context, userId int, order 
 	} else {
 		storedOrderModelResult = service.storage.UpdateOrder(ctx, *order.ToDSModel())
 	}
-	if storedOrderModelResult.IsError() {
-		return nil, storedOrderModelResult.Error()
-	}
 
-	// Map stored order to the response model
-	newOrder := models.MapToOrder(storedOrderModelResult.MustGet())
-	newOrder.Payments = storedPayments
-
-	return newOrder, nil
+	newOrder := mo.Fold[error, dsmodels.Order, mo.Result[*models.Order]](storedOrderModelResult,
+		func(dsOrder dsmodels.Order) mo.Result[*models.Order] {
+			// Map stored order to the response model
+			newOrder := models.MapToOrder(dsOrder)
+			newOrder.Payments = storedPayments
+			return mo.Ok(newOrder)
+		}, func(err error) mo.Result[*models.Order] {
+			return mo.Err[*models.Order](err)
+		})
+	return newOrder.Get()
 }
 
 // processPayments handles storing payments and updating payment IDs.
