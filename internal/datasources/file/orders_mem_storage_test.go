@@ -2,11 +2,11 @@ package file
 
 import (
 	"context"
-	"fp_kata/common/monads"
 	"fp_kata/internal/datasources"
 	"fp_kata/internal/datasources/dsmodels"
 	"fp_kata/pkg/log"
 	zlog "github.com/rs/zerolog/log"
+	"github.com/samber/mo"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,7 +28,7 @@ func TestGetOrder(t *testing.T) {
 		name           string
 		initialOrders  map[int]dsmodels.Order
 		orderID        int
-		expectedResult monads.Result[dsmodels.Order]
+		expectedResult mo.Result[dsmodels.Order]
 	}{
 		{
 			name: "OrderExists",
@@ -36,7 +36,7 @@ func TestGetOrder(t *testing.T) {
 				1: {ID: 1, UserId: 123, Payments: []int{1, 2}},
 			},
 			orderID:        1,
-			expectedResult: monads.Ok(dsmodels.Order{ID: 1, UserId: 123, Payments: []int{1, 2}}),
+			expectedResult: mo.Ok(dsmodels.Order{ID: 1, UserId: 123, Payments: []int{1, 2}}),
 		},
 		{
 			name: "OrderDoesNotExist",
@@ -44,13 +44,13 @@ func TestGetOrder(t *testing.T) {
 				1: {ID: 1, UserId: 123, Payments: []int{1, 2}},
 			},
 			orderID:        2,
-			expectedResult: monads.Errf[dsmodels.Order](errOrderNotFound),
+			expectedResult: mo.Errf[dsmodels.Order](errOrderNotFound),
 		},
 		{
 			name:           "EmptyOrdersStorage",
 			initialOrders:  map[int]dsmodels.Order{},
 			orderID:        1,
-			expectedResult: monads.Errf[dsmodels.Order](errOrderNotFound),
+			expectedResult: mo.Errf[dsmodels.Order](errOrderNotFound),
 		},
 	}
 
@@ -71,7 +71,7 @@ func TestGetAllOrdersForUser(t *testing.T) {
 		name           string
 		initialOrders  map[int]dsmodels.Order
 		userID         int
-		expectedResult monads.Result[[]dsmodels.Order]
+		expectedResult mo.Result[[]dsmodels.Order]
 	}{
 		{
 			name: "UserHasOrders",
@@ -81,7 +81,7 @@ func TestGetAllOrdersForUser(t *testing.T) {
 				3: {ID: 3, UserId: 456},
 			},
 			userID: 123,
-			expectedResult: monads.Ok([]dsmodels.Order{
+			expectedResult: mo.Ok([]dsmodels.Order{
 				{ID: 1, UserId: 123},
 				{ID: 2, UserId: 123},
 			}),
@@ -92,13 +92,13 @@ func TestGetAllOrdersForUser(t *testing.T) {
 				1: {ID: 1, UserId: 789},
 			},
 			userID:         123,
-			expectedResult: monads.Ok([]dsmodels.Order{}),
+			expectedResult: mo.Ok([]dsmodels.Order{}),
 		},
 		{
 			name:           "EmptyStorage",
 			initialOrders:  map[int]dsmodels.Order{},
 			userID:         123,
-			expectedResult: monads.Ok([]dsmodels.Order{}),
+			expectedResult: mo.Ok([]dsmodels.Order{}),
 		},
 	}
 
@@ -175,7 +175,7 @@ func TestUpdateOrder(t *testing.T) {
 		initialOrders  map[int]dsmodels.Order
 		updateOrder    dsmodels.Order
 		expectedError  string
-		expectedResult monads.Result[dsmodels.Order]
+		expectedResult mo.Result[dsmodels.Order]
 	}{
 		{
 			name: "UpdateExistingOrder",
@@ -184,7 +184,7 @@ func TestUpdateOrder(t *testing.T) {
 			},
 			updateOrder:    dsmodels.Order{ID: 1, UserId: 123, Quantity: 3},
 			expectedError:  "",
-			expectedResult: monads.Ok(dsmodels.Order{ID: 1, UserId: 123, Quantity: 3}),
+			expectedResult: mo.Ok(dsmodels.Order{ID: 1, UserId: 123, Quantity: 3}),
 		},
 		{
 			name: "UpdateNonExistentOrder",
@@ -193,14 +193,14 @@ func TestUpdateOrder(t *testing.T) {
 			},
 			updateOrder:    dsmodels.Order{ID: 2, UserId: 456, Quantity: 1},
 			expectedError:  "order not found",
-			expectedResult: monads.Errf[dsmodels.Order]("order not found"),
+			expectedResult: mo.Errf[dsmodels.Order]("order not found"),
 		},
 		{
 			name:           "UpdateOrderInEmptyStorage",
 			initialOrders:  map[int]dsmodels.Order{},
 			updateOrder:    dsmodels.Order{ID: 1, UserId: 123, Quantity: 1},
 			expectedError:  "order not found",
-			expectedResult: monads.Errf[dsmodels.Order]("order not found"),
+			expectedResult: mo.Errf[dsmodels.Order]("order not found"),
 		},
 	}
 
@@ -219,7 +219,7 @@ func TestInsertOrder(t *testing.T) {
 		name           string
 		initialOrders  map[int]dsmodels.Order
 		orderToInsert  dsmodels.Order
-		expectedResult monads.Result[dsmodels.Order]
+		expectedResult mo.Result[dsmodels.Order]
 	}{
 		{
 			name: "InsertNewOrder",
@@ -227,7 +227,7 @@ func TestInsertOrder(t *testing.T) {
 				1: {ID: 1, UserId: 123, Quantity: 1},
 			},
 			orderToInsert:  dsmodels.Order{ID: 2, UserId: 456, Quantity: 2},
-			expectedResult: monads.Ok(dsmodels.Order{ID: 2, UserId: 456, Quantity: 2}),
+			expectedResult: mo.Ok(dsmodels.Order{ID: 2, UserId: 456, Quantity: 2}),
 		},
 		{
 			name: "InsertExistingOrder",
@@ -235,13 +235,13 @@ func TestInsertOrder(t *testing.T) {
 				1: {ID: 1, UserId: 123, Quantity: 1},
 			},
 			orderToInsert:  dsmodels.Order{ID: 1, UserId: 123, Quantity: 2},
-			expectedResult: monads.Errf[dsmodels.Order]("order already exists"),
+			expectedResult: mo.Errf[dsmodels.Order]("order already exists"),
 		},
 		{
 			name:           "InsertIntoEmptyStorage",
 			initialOrders:  map[int]dsmodels.Order{},
 			orderToInsert:  dsmodels.Order{ID: 1, UserId: 123, Quantity: 1},
-			expectedResult: monads.Ok(dsmodels.Order{ID: 1, UserId: 123, Quantity: 1}),
+			expectedResult: mo.Ok(dsmodels.Order{ID: 1, UserId: 123, Quantity: 1}),
 		},
 	}
 	for _, tc := range tests {

@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fp_kata/common/constants"
-	"fp_kata/common/monads"
 	"fp_kata/common/utils"
 	"fp_kata/internal/datasources"
 	"fp_kata/internal/datasources/dsmodels"
 	"fp_kata/internal/models"
+	"github.com/samber/mo"
 )
 
 const compOrdersService = "OrdersService"
@@ -55,7 +55,7 @@ func (service *ordersService) StoreOrder(ctx context.Context, userId int, order 
 	}
 
 	// Store order in database
-	var storedOrderModelResult monads.Result[dsmodels.Order]
+	var storedOrderModelResult mo.Result[dsmodels.Order]
 	if isNewOrder {
 		storedOrderModelResult = service.storage.InsertOrder(ctx, *order.ToDSModel())
 	} else {
