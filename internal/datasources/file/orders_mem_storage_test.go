@@ -2,6 +2,7 @@ package file
 
 import (
 	"context"
+	"fp_kata/common/monads"
 	"fp_kata/internal/datasources"
 	"fp_kata/internal/datasources/dsmodels"
 	"fp_kata/pkg/log"
@@ -23,44 +24,33 @@ func TestGetOrder(t *testing.T) {
 
 	const errOrderNotFound = "order not found"
 
-	validateOrderMatches := func(t *testing.T, expected, actual *dsmodels.Order, err error) {
-		assert.NoError(t, err, "unexpected error received")
-		assert.Equal(t, expected, actual, "expected order mismatch")
-	}
-	validateOrderNotFound := func(t *testing.T, actual *dsmodels.Order, err error) {
-		assert.Nil(t, actual, "expected no order to be returned")
-		assert.EqualError(t, err, errOrderNotFound, "expected error mismatch")
-	}
-
 	tests := []struct {
-		name          string
-		initialOrders map[int]dsmodels.Order
-		orderID       int
-		validate      func(*testing.T, *dsmodels.Order, error)
+		name           string
+		initialOrders  map[int]dsmodels.Order
+		orderID        int
+		expectedResult monads.Result[dsmodels.Order]
 	}{
 		{
 			name: "OrderExists",
 			initialOrders: map[int]dsmodels.Order{
 				1: {ID: 1, UserId: 123, Payments: []int{1, 2}},
 			},
-			orderID: 1,
-			validate: func(t *testing.T, order *dsmodels.Order, err error) {
-				validateOrderMatches(t, &dsmodels.Order{ID: 1, UserId: 123, Payments: []int{1, 2}}, order, err)
-			},
+			orderID:        1,
+			expectedResult: monads.Ok(dsmodels.Order{ID: 1, UserId: 123, Payments: []int{1, 2}}),
 		},
 		{
 			name: "OrderDoesNotExist",
 			initialOrders: map[int]dsmodels.Order{
 				1: {ID: 1, UserId: 123, Payments: []int{1, 2}},
 			},
-			orderID:  2,
-			validate: validateOrderNotFound,
+			orderID:        2,
+			expectedResult: monads.Errf[dsmodels.Order](errOrderNotFound),
 		},
 		{
-			name:          "EmptyOrdersStorage",
-			initialOrders: map[int]dsmodels.Order{},
-			orderID:       1,
-			validate:      validateOrderNotFound,
+			name:           "EmptyOrdersStorage",
+			initialOrders:  map[int]dsmodels.Order{},
+			orderID:        1,
+			expectedResult: monads.Errf[dsmodels.Order](errOrderNotFound),
 		},
 	}
 
@@ -68,9 +58,9 @@ func TestGetOrder(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			storage, ctx := initTestOrdersStorage(tc.initialOrders)
 
-			order, err := storage.GetOrder(ctx, tc.orderID)
+			orderResult := storage.GetOrder(ctx, tc.orderID)
 
-			tc.validate(t, order, err)
+			assert.Equal(t, tc.expectedResult, orderResult, "unexpected result")
 		})
 	}
 }
