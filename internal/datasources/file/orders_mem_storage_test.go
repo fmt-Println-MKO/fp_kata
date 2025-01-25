@@ -68,10 +68,10 @@ func TestGetOrder(t *testing.T) {
 func TestGetAllOrdersForUser(t *testing.T) {
 
 	tests := []struct {
-		name          string
-		initialOrders map[int]dsmodels.Order
-		userID        int
-		validate      func(*testing.T, []dsmodels.Order)
+		name           string
+		initialOrders  map[int]dsmodels.Order
+		userID         int
+		expectedResult monads.Result[[]dsmodels.Order]
 	}{
 		{
 			name: "UserHasOrders",
@@ -81,39 +81,32 @@ func TestGetAllOrdersForUser(t *testing.T) {
 				3: {ID: 3, UserId: 456},
 			},
 			userID: 123,
-			validate: func(t *testing.T, orders []dsmodels.Order) {
-				assert.Len(t, orders, 2, "unexpected number of orders returned")
-				assert.Equal(t, []dsmodels.Order{
-					{ID: 1, UserId: 123},
-					{ID: 2, UserId: 123},
-				}, orders, "expected orders for user mismatch")
-			},
+			expectedResult: monads.Ok([]dsmodels.Order{
+				{ID: 1, UserId: 123},
+				{ID: 2, UserId: 123},
+			}),
 		},
 		{
 			name: "UserHasNoOrders",
 			initialOrders: map[int]dsmodels.Order{
 				1: {ID: 1, UserId: 789},
 			},
-			userID: 123,
-			validate: func(t *testing.T, orders []dsmodels.Order) {
-				assert.Empty(t, orders, "expected no orders for user but some were returned")
-			},
+			userID:         123,
+			expectedResult: monads.Ok([]dsmodels.Order{}),
 		},
 		{
-			name:          "EmptyStorage",
-			initialOrders: map[int]dsmodels.Order{},
-			userID:        123,
-			validate: func(t *testing.T, orders []dsmodels.Order) {
-				assert.Empty(t, orders, "expected no orders for user in empty storage but some were returned")
-			},
+			name:           "EmptyStorage",
+			initialOrders:  map[int]dsmodels.Order{},
+			userID:         123,
+			expectedResult: monads.Ok([]dsmodels.Order{}),
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			storage, ctx := initTestOrdersStorage(tc.initialOrders)
-			orders, _ := storage.GetAllOrdersForUser(ctx, tc.userID)
-			tc.validate(t, orders)
+			ordersResult := storage.GetAllOrdersForUser(ctx, tc.userID)
+			assert.Equal(t, tc.expectedResult, ordersResult, "unexpected result")
 		})
 	}
 }

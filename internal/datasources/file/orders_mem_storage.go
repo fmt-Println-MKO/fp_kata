@@ -25,7 +25,7 @@ func (s *inMemoryOrdersStorage) GetOrder(ctx context.Context, orderID int) monad
 	return monads.Ok(order)
 }
 
-func (s *inMemoryOrdersStorage) GetAllOrdersForUser(ctx context.Context, userID int) ([]dsmodels.Order, error) {
+func (s *inMemoryOrdersStorage) GetAllOrdersForUser(ctx context.Context, userID int) monads.Result[[]dsmodels.Order] {
 	utils.LogAction(ctx, compOrdersStorage, "GetAllOrdersForUser")
 
 	userOrders := make([]dsmodels.Order, 0)
@@ -34,7 +34,7 @@ func (s *inMemoryOrdersStorage) GetAllOrdersForUser(ctx context.Context, userID 
 			userOrders = append(userOrders, order)
 		}
 	}
-	return userOrders, nil
+	return monads.Ok(userOrders)
 }
 
 func (s *inMemoryOrdersStorage) DeleteOrder(ctx context.Context, orderID int) error {
