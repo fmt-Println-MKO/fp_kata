@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
 	"fp_kata/common/constants"
 	"fp_kata/common/utils"
 	"fp_kata/internal/datasources"
@@ -14,10 +13,10 @@ import (
 const compOrdersService = "OrdersService"
 
 type OrdersService interface {
-	StoreOrder(ctx context.Context, userId int, order models.Order) (*models.Order, error)
-	GetOrder(ctx context.Context, userId int, id int) (*models.Order, error)
-	GetOrders(ctx context.Context, userId int) ([]*models.Order, error)
-	GetOrdersWithFilter(ctx context.Context, userId int, filter func(order *models.Order) bool) ([]*models.Order, error)
+	StoreOrder(ctx context.Context, userId int, order models.Order) mo.Result[*models.Order]
+	GetOrder(ctx context.Context, userId int, id int) mo.Result[*models.Order]
+	GetOrders(ctx context.Context, userId int) mo.Result[[]*models.Order]
+	GetOrdersWithFilter(ctx context.Context, userId int, filter func(order *models.Order) bool) mo.Result[[]*models.Order]
 }
 
 type ordersService struct {
@@ -33,12 +32,12 @@ func NewOrdersService(storage datasources.OrdersDatasource, paymentService Payme
 
 const errUserRequired = "user id is required"
 
-func (service *ordersService) StoreOrder(ctx context.Context, userId int, order models.Order) (*models.Order, error) {
+func (service *ordersService) StoreOrder(ctx context.Context, userId int, order models.Order) mo.Result[*models.Order] {
 	utils.LogAction(ctx, compOrdersService, "StoreOrder")
 
 	// Validate user
 	if userId == 0 || order.User == nil || order.User.ID != userId {
-		return nil, errors.New(errUserRequired)
+		return mo.Errf[*models.Order](errUserRequired)
 	}
 
 	isNewOrder := order.ID == 0
@@ -49,82 +48,81 @@ func (service *ordersService) StoreOrder(ctx context.Context, userId int, order 
 
 	// Process payments
 	// payment Ids inside order will be updated <-- side effect
-	storedPayments, err := service.processPayments(ctx, &order)
-	if err != nil {
-		return nil, err
-	}
+	return mo.Fold(service.processPayments(ctx, &order),
+		func(storedPayments []*models.Payment) mo.Result[*models.Order] {
 
-	// Store order in database
+			return mo.Fold(
+				service.storeOrUpdateOrder(isNewOrder, ctx, order),
+				func(dsOrder dsmodels.Order) mo.Result[*models.Order] {
+					// Map stored order to the response model
+					newOrder := models.MapToOrder(dsOrder)
+					newOrder.Payments = storedPayments
+					return mo.Ok(newOrder)
+				}, func(err error) mo.Result[*models.Order] {
+					return mo.Err[*models.Order](err)
+				})
+
+		},
+		func(err error) mo.Result[*models.Order] {
+			return mo.Err[*models.Order](err)
+		},
+	)
+}
+
+func (service *ordersService) storeOrUpdateOrder(isNewOrder bool, ctx context.Context, order models.Order) mo.Result[dsmodels.Order] {
 	var storedOrderModelResult mo.Result[dsmodels.Order]
 	if isNewOrder {
 		storedOrderModelResult = service.storage.InsertOrder(ctx, *order.ToDSModel())
 	} else {
 		storedOrderModelResult = service.storage.UpdateOrder(ctx, *order.ToDSModel())
 	}
-
-	newOrder := mo.Fold(
-		storedOrderModelResult,
-		func(dsOrder dsmodels.Order) mo.Result[*models.Order] {
-			// Map stored order to the response model
-			newOrder := models.MapToOrder(dsOrder)
-			newOrder.Payments = storedPayments
-			return mo.Ok(newOrder)
-		}, func(err error) mo.Result[*models.Order] {
-			return mo.Err[*models.Order](err)
-		})
-	return newOrder.Get()
+	return storedOrderModelResult
 }
 
 // processPayments handles storing payments and updating payment IDs.
-func (service *ordersService) processPayments(ctx context.Context, order *models.Order) ([]*models.Payment, error) {
+func (service *ordersService) processPayments(ctx context.Context, order *models.Order) mo.Result[[]*models.Payment] {
 	storedPayments := make([]*models.Payment, len(order.Payments))
 
 	for i, payment := range order.Payments {
 		payment.Order = order
 		storedPayment, err := service.paymentService.StorePayment(ctx, *payment)
 		if err != nil {
-			return nil, err
+			return mo.Err[[]*models.Payment](err)
 		}
 		order.Payments[i].Id = storedPayment.Id
 		storedPayments[i] = storedPayment
 	}
 
-	return storedPayments, nil
+	return mo.Ok(storedPayments)
 }
 
-func (service *ordersService) GetOrder(ctx context.Context, userId int, id int) (*models.Order, error) {
+func (service *ordersService) GetOrder(ctx context.Context, userId int, id int) mo.Result[*models.Order] {
 	utils.LogAction(ctx, compOrdersService, "GetOrder")
 
 	if userId == 0 {
-		return nil, errors.New("user id is required")
+		return mo.Errf[*models.Order]("user id is required")
 	}
 
-	dsOrderResult := service.storage.GetOrder(ctx, id)
-
-	orderResult := mo.Fold(
-		dsOrderResult,
+	return mo.Fold(
+		service.storage.GetOrder(ctx, id),
 		func(dsOrder dsmodels.Order) mo.Result[*models.Order] {
 			return service.processDsOrder(ctx, userId, dsOrder)
 		},
 		func(err error) mo.Result[*models.Order] {
 			return mo.Err[*models.Order](err)
 		})
-
-	return orderResult.Get()
 }
 
-func (service *ordersService) GetOrders(ctx context.Context, userId int) ([]*models.Order, error) {
+func (service *ordersService) GetOrders(ctx context.Context, userId int) mo.Result[[]*models.Order] {
 	utils.LogAction(ctx, compOrdersService, "GetOrders")
 
 	if userId == 0 {
-		return nil, errors.New("user id is required")
+		return mo.Errf[[]*models.Order]("user id is required")
 	}
-	dsOrdersResult := service.storage.GetAllOrdersForUser(ctx, userId)
-
-	orders := mo.Fold(
-		dsOrdersResult,
+	return mo.Fold(
+		service.storage.GetAllOrdersForUser(ctx, userId),
 		func(dsOrders []dsmodels.Order) mo.Result[[]*models.Order] {
-			var orders []*models.Order
+			orders := make([]*models.Order, 0)
 			for _, dsOrder := range dsOrders {
 				orderResult := service.processDsOrder(ctx, userId, dsOrder)
 				if orderResult.IsError() {
@@ -138,22 +136,19 @@ func (service *ordersService) GetOrders(ctx context.Context, userId int) ([]*mod
 			return mo.Err[[]*models.Order](err)
 		},
 	)
-	return orders.Get()
 }
 
-func (service *ordersService) GetOrdersWithFilter(ctx context.Context, userId int, filter func(order *models.Order) bool) ([]*models.Order, error) {
+func (service *ordersService) GetOrdersWithFilter(ctx context.Context, userId int, filter func(order *models.Order) bool) mo.Result[[]*models.Order] {
 	utils.LogAction(ctx, compOrdersService, "GetOrdersWithFilter")
 
 	if userId == 0 {
-		return nil, errors.New("user id is required")
+		return mo.Errf[[]*models.Order]("user id is required")
 	}
-	dsOrdersResult := service.storage.GetAllOrdersForUser(ctx, userId)
-
-	filteredOrders := mo.Fold(
-		dsOrdersResult,
+	return mo.Fold(
+		service.storage.GetAllOrdersForUser(ctx, userId),
 		func(dsOrders []dsmodels.Order) mo.Result[[]*models.Order] {
-			var filteredOrders []*models.Order
-			for _, dsOrder := range dsOrdersResult.MustGet() {
+			filteredOrders := make([]*models.Order, 0)
+			for _, dsOrder := range dsOrders {
 				order := models.MapToOrder(dsOrder)
 				if filter(order) {
 					filteredOrderResult := service.processOrder(ctx, userId, order)
@@ -169,8 +164,6 @@ func (service *ordersService) GetOrdersWithFilter(ctx context.Context, userId in
 			return mo.Err[[]*models.Order](err)
 		},
 	)
-
-	return filteredOrders.Get()
 }
 
 func (service *ordersService) processDsOrder(ctx context.Context, userId int, storedOrder dsmodels.Order) mo.Result[*models.Order] {

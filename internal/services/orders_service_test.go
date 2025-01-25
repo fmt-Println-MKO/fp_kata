@@ -22,11 +22,11 @@ func TestOrderService_StoreOrder(t *testing.T) {
 	ctx := log.NewBackgroundContext(&zlog.Logger)
 
 	tests := []struct {
-		name       string
-		userId     int
-		order      models.Order
-		mockSetup  func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService)
-		assertFunc func(t *testing.T, err error, createdOrder *models.Order)
+		name           string
+		userId         int
+		order          models.Order
+		mockSetup      func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService)
+		expectedResult mo.Result[*models.Order]
 	}{
 		{
 			name:   "new order success",
@@ -43,11 +43,7 @@ func TestOrderService_StoreOrder(t *testing.T) {
 				})).Return(&models.Payment{Id: 1, Amount: 20.0}, nil)
 				storage.On("InsertOrder", ctx, mock.Anything).Return(mo.Ok(dsmodels.Order{ID: 1, UserId: 1}))
 			},
-			assertFunc: func(t *testing.T, err error, createdOrder *models.Order) {
-				assert.NoError(t, err, "expected no error on storing new order")
-				assert.NotNil(t, createdOrder, "expected a created order object")
-				assert.Equal(t, 1, createdOrder.ID, "expected order ID to match")
-			},
+			expectedResult: mo.Ok(&models.Order{ID: 1, User: &models.User{ID: 1}, Payments: []*models.Payment{{Id: 1, Amount: 20.0}}}),
 		},
 		{
 			name:   "missing user ID",
@@ -58,10 +54,7 @@ func TestOrderService_StoreOrder(t *testing.T) {
 			mockSetup: func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService) {
 				// No mocks needed
 			},
-			assertFunc: func(t *testing.T, err error, createdOrder *models.Order) {
-				assert.EqualError(t, err, "user id is required", "expected error for missing user ID")
-				assert.Nil(t, createdOrder, "expected no created order for missing user ID")
-			},
+			expectedResult: mo.Errf[*models.Order]("user id is required"),
 		},
 		{
 			name:   "user ID mismatch",
@@ -72,10 +65,7 @@ func TestOrderService_StoreOrder(t *testing.T) {
 			mockSetup: func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService) {
 				// No mocks needed
 			},
-			assertFunc: func(t *testing.T, err error, createdOrder *models.Order) {
-				assert.EqualError(t, err, "user id is required", "expected error for user ID mismatch")
-				assert.Nil(t, createdOrder, "expected no created order for user ID mismatch")
-			},
+			expectedResult: mo.Errf[*models.Order]("user id is required"),
 		},
 		{
 			name:   "payment service error",
@@ -89,10 +79,7 @@ func TestOrderService_StoreOrder(t *testing.T) {
 			mockSetup: func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService) {
 				paymentService.On("StorePayment", ctx, mock.Anything).Return(nil, errors.New("payment processing failed"))
 			},
-			assertFunc: func(t *testing.T, err error, createdOrder *models.Order) {
-				assert.EqualError(t, err, "payment processing failed", "expected error for payment processing failure")
-				assert.Nil(t, createdOrder, "expected no created order for payment processing error")
-			},
+			expectedResult: mo.Errf[*models.Order]("payment processing failed"),
 		},
 		{
 			name:   "storage insert error",
@@ -107,10 +94,7 @@ func TestOrderService_StoreOrder(t *testing.T) {
 				paymentService.On("StorePayment", ctx, mock.Anything).Return(&models.Payment{Id: 1, Amount: 20.0}, nil)
 				storage.On("InsertOrder", ctx, mock.Anything).Return(mo.Errf[dsmodels.Order]("insert failed"))
 			},
-			assertFunc: func(t *testing.T, err error, createdOrder *models.Order) {
-				assert.EqualError(t, err, "insert failed", "expected error for storage insert failure")
-				assert.Nil(t, createdOrder, "expected no created order on storage insert failure")
-			},
+			expectedResult: mo.Errf[*models.Order]("insert failed"),
 		},
 		{
 			name:   "update order success",
@@ -126,11 +110,7 @@ func TestOrderService_StoreOrder(t *testing.T) {
 				paymentService.On("StorePayment", ctx, mock.Anything).Return(&models.Payment{Id: 1, Amount: 30.0}, nil)
 				storage.On("UpdateOrder", ctx, mock.Anything).Return(mo.Ok(dsmodels.Order{ID: 1, UserId: 1}))
 			},
-			assertFunc: func(t *testing.T, err error, createdOrder *models.Order) {
-				assert.NoError(t, err, "expected no error on updating order")
-				assert.NotNil(t, createdOrder, "expected an updated order object")
-				assert.Equal(t, 1, createdOrder.ID, "expected updated order ID to match")
-			},
+			expectedResult: mo.Ok(&models.Order{ID: 1, User: &models.User{ID: 1}, Payments: []*models.Payment{{Id: 1, Amount: 30.0}}}),
 		},
 		{
 			name:   "storage update error",
@@ -146,10 +126,7 @@ func TestOrderService_StoreOrder(t *testing.T) {
 				paymentService.On("StorePayment", ctx, mock.Anything).Return(&models.Payment{Id: 1, Amount: 30.0}, nil)
 				storage.On("UpdateOrder", ctx, mock.Anything).Return(mo.Errf[dsmodels.Order]("update failed"))
 			},
-			assertFunc: func(t *testing.T, err error, createdOrder *models.Order) {
-				assert.EqualError(t, err, "update failed", "expected error for storage update failure")
-				assert.Nil(t, createdOrder, "expected no created order on storage update failure")
-			},
+			expectedResult: mo.Errf[*models.Order]("update failed"),
 		},
 	}
 
@@ -162,8 +139,8 @@ func TestOrderService_StoreOrder(t *testing.T) {
 
 			service := NewOrdersService(storage, paymentService, authorizationService)
 
-			createdOrder, err := service.StoreOrder(ctx, test.userId, test.order)
-			test.assertFunc(t, err, createdOrder)
+			createdOrderResult := service.StoreOrder(ctx, test.userId, test.order)
+			assert.Equal(t, test.expectedResult, createdOrderResult)
 
 			storage.AssertExpectations(t)
 			paymentService.AssertExpectations(t)
@@ -177,10 +154,10 @@ func TestOrderService_processPayments(t *testing.T) {
 	ctx := log.NewBackgroundContext(&zlog.Logger)
 
 	tests := []struct {
-		name       string
-		order      models.Order
-		mockSetup  func(paymentService *mocks.PaymentsService)
-		assertFunc func(t *testing.T, payments []*models.Payment, err error)
+		name           string
+		order          models.Order
+		mockSetup      func(paymentService *mocks.PaymentsService)
+		expectedResult mo.Result[[]*models.Payment]
 	}{
 		{
 			name: "successfully process all payments",
@@ -195,14 +172,7 @@ func TestOrderService_processPayments(t *testing.T) {
 				paymentService.On("StorePayment", ctx, mock.MatchedBy(func(p models.Payment) bool { return p.Amount == 50.0 })).Return(&models.Payment{Id: 1, Amount: 50.0}, nil)
 				paymentService.On("StorePayment", ctx, mock.MatchedBy(func(p models.Payment) bool { return p.Amount == 25.0 })).Return(&models.Payment{Id: 2, Amount: 25.0}, nil)
 			},
-			assertFunc: func(t *testing.T, payments []*models.Payment, err error) {
-				assert.NoError(t, err, "expected no error")
-				assert.Len(t, payments, 2, "expected exactly 2 payments processed")
-				assert.Equal(t, 1, payments[0].Id, "unexpected first payment ID")
-				assert.Equal(t, 50.0, payments[0].Amount, "unexpected first payment amount")
-				assert.Equal(t, 2, payments[1].Id, "unexpected second payment ID")
-				assert.Equal(t, 25.0, payments[1].Amount, "unexpected second payment amount")
-			},
+			expectedResult: mo.Ok[[]*models.Payment]([]*models.Payment{{Id: 1, Amount: 50.0}, {Id: 2, Amount: 25.0}}),
 		},
 		{
 			name: "handle payment processing failure",
@@ -215,10 +185,7 @@ func TestOrderService_processPayments(t *testing.T) {
 			mockSetup: func(paymentService *mocks.PaymentsService) {
 				paymentService.On("StorePayment", ctx, mock.Anything).Return(nil, errors.New("payment service failed"))
 			},
-			assertFunc: func(t *testing.T, payments []*models.Payment, err error) {
-				assert.Nil(t, payments, "expected no processed payments")
-				assert.EqualError(t, err, "payment service failed", "unexpected error message")
-			},
+			expectedResult: mo.Errf[[]*models.Payment]("payment service failed"),
 		},
 		{
 			name: "no payments to process",
@@ -229,10 +196,7 @@ func TestOrderService_processPayments(t *testing.T) {
 			mockSetup: func(paymentService *mocks.PaymentsService) {
 				// No payments, no mocks needed
 			},
-			assertFunc: func(t *testing.T, payments []*models.Payment, err error) {
-				assert.NoError(t, err, "expected no error for empty payments")
-				assert.Empty(t, payments, "expected empty payment result")
-			},
+			expectedResult: mo.Ok[[]*models.Payment]([]*models.Payment{}),
 		},
 	}
 
@@ -242,9 +206,8 @@ func TestOrderService_processPayments(t *testing.T) {
 			test.mockSetup(paymentService)
 
 			service := &ordersService{paymentService: paymentService}
-			payments, err := service.processPayments(ctx, &test.order)
-
-			test.assertFunc(t, payments, err)
+			paymentsResult := service.processPayments(ctx, &test.order)
+			assert.Equal(t, test.expectedResult, paymentsResult)
 			paymentService.AssertExpectations(t)
 		})
 	}
@@ -255,12 +218,12 @@ func TestOrderService_GetOrdersWithFilter(t *testing.T) {
 	ctx := log.NewBackgroundContext(&zlog.Logger)
 
 	tests := []struct {
-		name       string
-		userId     int
-		ctxUser    *models.User
-		filter     func(order *models.Order) bool
-		mockSetup  func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService, authorizationService *mocks.AuthorizationService)
-		assertFunc func(t *testing.T, err error, orders []*models.Order)
+		name           string
+		userId         int
+		ctxUser        *models.User
+		filter         func(order *models.Order) bool
+		mockSetup      func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService, authorizationService *mocks.AuthorizationService)
+		expectedResult mo.Result[[]*models.Order]
 	}{
 		{
 			name:    "success case with filter",
@@ -278,15 +241,9 @@ func TestOrderService_GetOrdersWithFilter(t *testing.T) {
 				paymentService.On("GetPaymentsByOrder", mock.Anything, 2).Return([]*models.Payment{}, nil)
 				authorizationService.On("IsAuthorized", mock.Anything, 1, &models.Order{ID: 2, User: &models.User{ID: 1}, Payments: []*models.Payment{}}).Return(true, nil).Once()
 			},
-			assertFunc: func(t *testing.T, err error, orders []*models.Order) {
-				assert.NoError(t, err, "expected no error")
-				assert.Len(t, orders, 1, "expected 1 order to match the filter")
-
-				expectedOrders := []*models.Order{
-					{ID: 2, User: &models.User{ID: 1}, Payments: []*models.Payment{}},
-				}
-				assert.Equal(t, expectedOrders, orders, "orders do not match expected filtered results")
-			},
+			expectedResult: mo.Ok([]*models.Order{
+				{ID: 2, User: &models.User{ID: 1}, Payments: []*models.Payment{}},
+			}),
 		},
 		{
 			name:   "missing user id",
@@ -297,10 +254,7 @@ func TestOrderService_GetOrdersWithFilter(t *testing.T) {
 			mockSetup: func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService, authorizationService *mocks.AuthorizationService) {
 				// No mocks needed
 			},
-			assertFunc: func(t *testing.T, err error, orders []*models.Order) {
-				assert.EqualError(t, err, "user id is required", "expected error when user id is missing")
-				assert.Nil(t, orders, "expected no orders when user id is missing")
-			},
+			expectedResult: mo.Errf[[]*models.Order]("user id is required"),
 		},
 		{
 			name:   "context missing authenticated user",
@@ -316,10 +270,7 @@ func TestOrderService_GetOrdersWithFilter(t *testing.T) {
 				paymentService.On("GetPaymentsByOrder", mock.Anything, 1).Return([]*models.Payment{}, nil)
 				authorizationService.On("IsAuthorized", mock.Anything, 1, &models.Order{ID: 1, User: &models.User{ID: 1}, Payments: []*models.Payment{}}).Return(true, nil).Once()
 			},
-			assertFunc: func(t *testing.T, err error, orders []*models.Order) {
-				assert.EqualError(t, err, "user id is required", "expected error when user id is missing")
-				assert.Nil(t, orders, "expected no orders when user id is missing")
-			},
+			expectedResult: mo.Errf[[]*models.Order]("user id is required"),
 		},
 		{
 			name:   "storage error",
@@ -330,10 +281,7 @@ func TestOrderService_GetOrdersWithFilter(t *testing.T) {
 			mockSetup: func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService, authorizationService *mocks.AuthorizationService) {
 				storage.On("GetAllOrdersForUser", mock.Anything, 1).Return(mo.Errf[[]dsmodels.Order]("storage error"))
 			},
-			assertFunc: func(t *testing.T, err error, orders []*models.Order) {
-				assert.EqualError(t, err, "storage error", "expected storage error")
-				assert.Nil(t, orders, "expected no orders when storage fails")
-			},
+			expectedResult: mo.Errf[[]*models.Order]("storage error"),
 		},
 		{
 			name:   "payment service error after filtering",
@@ -349,10 +297,7 @@ func TestOrderService_GetOrdersWithFilter(t *testing.T) {
 				paymentService.On("GetPaymentsByOrder", mock.Anything, 1).Return(nil, errors.New("payment service error"))
 				authorizationService.On("IsAuthorized", mock.Anything, 1, &models.Order{ID: 1, User: &models.User{ID: 1}, Payments: []*models.Payment{}}).Return(true, nil).Once()
 			},
-			assertFunc: func(t *testing.T, err error, orders []*models.Order) {
-				assert.EqualError(t, err, "payment service error", "expected payment service error")
-				assert.Nil(t, orders, "expected no orders when payment service fails after filtering")
-			},
+			expectedResult: mo.Errf[[]*models.Order]("payment service error"),
 		},
 		{
 			name:   "no orders match the filter",
@@ -366,10 +311,7 @@ func TestOrderService_GetOrdersWithFilter(t *testing.T) {
 						{ID: 1, UserId: 1},
 					}))
 			},
-			assertFunc: func(t *testing.T, err error, orders []*models.Order) {
-				assert.NoError(t, err, "expected no error for unmatched filter")
-				assert.Empty(t, orders, "expected no orders to match the filter")
-			},
+			expectedResult: mo.Ok[[]*models.Order]([]*models.Order{}),
 		},
 	}
 
@@ -385,8 +327,8 @@ func TestOrderService_GetOrdersWithFilter(t *testing.T) {
 			testCtx := context.WithValue(ctx, constants.AuthenticatedUserIdKey, test.userId)
 			testCtx = context.WithValue(testCtx, constants.AuthenticatedUserKey, test.ctxUser)
 
-			orders, err := service.GetOrdersWithFilter(testCtx, test.userId, test.filter)
-			test.assertFunc(t, err, orders)
+			ordersResult := service.GetOrdersWithFilter(testCtx, test.userId, test.filter)
+			assert.Equal(t, test.expectedResult, ordersResult)
 
 			storage.AssertExpectations(t)
 			paymentService.AssertExpectations(t)
@@ -395,27 +337,17 @@ func TestOrderService_GetOrdersWithFilter(t *testing.T) {
 	}
 }
 
-func assertError(t *testing.T, err error, expectedErr error) {
-	assert.Nil(t, nil, "expected result to be nil")
-	assert.EqualError(t, err, expectedErr.Error(), "unexpected error message")
-}
-
-func assertSuccess(t *testing.T, err error, expectedOrder *models.Order, actualOrder *models.Order) {
-	assert.NoError(t, err, "expected no error")
-	assert.Equal(t, expectedOrder, actualOrder, "unexpected order result")
-}
-
 func TestOrderService_GetOrder(t *testing.T) {
 	log.InitLogger()
 	ctx := log.NewBackgroundContext(&zlog.Logger)
 
 	tests := []struct {
-		name       string
-		userId     int
-		ctxUser    *models.User
-		orderId    int
-		mockSetup  func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService, authorizationService *mocks.AuthorizationService)
-		assertFunc func(t *testing.T, err error, actualOrder *models.Order)
+		name           string
+		userId         int
+		ctxUser        *models.User
+		orderId        int
+		mockSetup      func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService, authorizationService *mocks.AuthorizationService)
+		expectedResult mo.Result[*models.Order]
 	}{
 		{
 			name:    "success case",
@@ -427,10 +359,7 @@ func TestOrderService_GetOrder(t *testing.T) {
 				paymentService.On("GetPaymentsByOrder", mock.Anything, 123).Return([]*models.Payment{}, nil)
 				authorizationService.On("IsAuthorized", mock.Anything, 1, &models.Order{ID: 123, User: &models.User{ID: 1}, Payments: []*models.Payment{}}).Return(true, nil)
 			},
-			assertFunc: func(t *testing.T, err error, actualOrder *models.Order) {
-				expectedOrder := &models.Order{ID: 123, User: &models.User{ID: 1}, Payments: []*models.Payment{}}
-				assertSuccess(t, err, expectedOrder, actualOrder)
-			},
+			expectedResult: mo.Ok(&models.Order{ID: 123, User: &models.User{ID: 1}, Payments: []*models.Payment{}}),
 		},
 		{
 			name:    "missing user id",
@@ -439,9 +368,7 @@ func TestOrderService_GetOrder(t *testing.T) {
 			mockSetup: func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService, authorizationService *mocks.AuthorizationService) {
 				// No mocks needed since the function returns at the beginning
 			},
-			assertFunc: func(t *testing.T, err error, actualOrder *models.Order) {
-				assertError(t, err, errors.New("user id is required"))
-			},
+			expectedResult: mo.Errf[*models.Order]("user id is required"),
 		},
 		{
 			name:    "order not found in storage",
@@ -450,9 +377,7 @@ func TestOrderService_GetOrder(t *testing.T) {
 			mockSetup: func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService, authorizationService *mocks.AuthorizationService) {
 				storage.On("GetOrder", mock.Anything, 123).Return(mo.Errf[dsmodels.Order]("order not found"))
 			},
-			assertFunc: func(t *testing.T, err error, actualOrder *models.Order) {
-				assertError(t, err, errors.New("order not found"))
-			},
+			expectedResult: mo.Errf[*models.Order]("order not found"),
 		},
 		{
 			name:    "user not authorized",
@@ -462,9 +387,7 @@ func TestOrderService_GetOrder(t *testing.T) {
 				storage.On("GetOrder", mock.Anything, 123).Return(mo.Ok(dsmodels.Order{ID: 123, UserId: 1}))
 				authorizationService.On("IsAuthorized", mock.Anything, 2, &models.Order{ID: 123, User: &models.User{ID: 1}, Payments: []*models.Payment{}}).Return(false, nil)
 			},
-			assertFunc: func(t *testing.T, err error, actualOrder *models.Order) {
-				assertError(t, err, errors.New("user is not authorized to access this order"))
-			},
+			expectedResult: mo.Errf[*models.Order]("user is not authorized to access this order"),
 		},
 		{
 			name:    "user authorization error",
@@ -474,9 +397,7 @@ func TestOrderService_GetOrder(t *testing.T) {
 				storage.On("GetOrder", mock.Anything, 123).Return(mo.Ok(dsmodels.Order{ID: 123, UserId: 1}))
 				authorizationService.On("IsAuthorized", mock.Anything, 1, &models.Order{ID: 123, User: &models.User{ID: 1}, Payments: []*models.Payment{}}).Return(false, errors.New("userId is required"))
 			},
-			assertFunc: func(t *testing.T, err error, actualOrder *models.Order) {
-				assertError(t, err, errors.New("userId is required"))
-			},
+			expectedResult: mo.Errf[*models.Order]("userId is required"),
 		},
 		{
 			name:    "context missing authenticated user",
@@ -487,9 +408,7 @@ func TestOrderService_GetOrder(t *testing.T) {
 				paymentService.On("GetPaymentsByOrder", mock.Anything, 123).Return([]*models.Payment{}, nil)
 				authorizationService.On("IsAuthorized", mock.Anything, 1, &models.Order{ID: 123, User: &models.User{ID: 1}, Payments: []*models.Payment{}}).Return(true, nil)
 			},
-			assertFunc: func(t *testing.T, err error, actualOrder *models.Order) {
-				assertError(t, err, errors.New("user id is required"))
-			},
+			expectedResult: mo.Errf[*models.Order]("user id is required"),
 		},
 		{
 			name:    "error fetching payments",
@@ -501,9 +420,7 @@ func TestOrderService_GetOrder(t *testing.T) {
 				paymentService.On("GetPaymentsByOrder", mock.Anything, 123).Return(nil, errors.New("payment fetch error"))
 				authorizationService.On("IsAuthorized", mock.Anything, 1, &models.Order{ID: 123, User: &models.User{ID: 1}, Payments: []*models.Payment{}}).Return(true, nil)
 			},
-			assertFunc: func(t *testing.T, err error, actualOrder *models.Order) {
-				assertError(t, err, errors.New("payment fetch error"))
-			},
+			expectedResult: mo.Errf[*models.Order]("payment fetch error"),
 		},
 	}
 
@@ -519,8 +436,8 @@ func TestOrderService_GetOrder(t *testing.T) {
 			testCtx := context.WithValue(ctx, constants.AuthenticatedUserIdKey, test.userId)
 			testCtx = context.WithValue(testCtx, constants.AuthenticatedUserKey, test.ctxUser)
 
-			actualOrder, err := service.GetOrder(testCtx, test.userId, test.orderId)
-			test.assertFunc(t, err, actualOrder)
+			actualOrderResult := service.GetOrder(testCtx, test.userId, test.orderId)
+			assert.Equal(t, test.expectedResult, actualOrderResult)
 
 			storage.AssertExpectations(t)
 			paymentService.AssertExpectations(t)
@@ -534,11 +451,11 @@ func TestOrderService_GetOrders(t *testing.T) {
 	ctx := log.NewBackgroundContext(&zlog.Logger)
 
 	tests := []struct {
-		name       string
-		userId     int
-		ctxUser    *models.User
-		mockSetup  func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService, authorizationService *mocks.AuthorizationService)
-		assertFunc func(t *testing.T, err error, orders []*models.Order)
+		name           string
+		userId         int
+		ctxUser        *models.User
+		mockSetup      func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService, authorizationService *mocks.AuthorizationService)
+		expectedResult mo.Result[[]*models.Order]
 	}{
 		{
 			name:    "success case",
@@ -555,16 +472,10 @@ func TestOrderService_GetOrders(t *testing.T) {
 				authorizationService.On("IsAuthorized", mock.Anything, 1, &models.Order{ID: 1, User: &models.User{ID: 1}, Payments: []*models.Payment{}}).Return(true, nil)
 				authorizationService.On("IsAuthorized", mock.Anything, 1, &models.Order{ID: 2, User: &models.User{ID: 1}, Payments: []*models.Payment{}}).Return(true, nil)
 			},
-			assertFunc: func(t *testing.T, err error, orders []*models.Order) {
-				assert.NoError(t, err, "expected no error, got error")
-				assert.Len(t, orders, 2, "expected 2 orders, but got a different count")
-
-				expectedOrders := []*models.Order{
-					{ID: 1, User: &models.User{ID: 1}, Payments: []*models.Payment{}},
-					{ID: 2, User: &models.User{ID: 1}, Payments: []*models.Payment{}},
-				}
-				assert.Equal(t, expectedOrders, orders, "orders do not match expected output")
-			},
+			expectedResult: mo.Ok([]*models.Order{
+				{ID: 1, User: &models.User{ID: 1}, Payments: []*models.Payment{}},
+				{ID: 2, User: &models.User{ID: 1}, Payments: []*models.Payment{}},
+			}),
 		},
 		{
 			name:   "missing user id",
@@ -572,10 +483,7 @@ func TestOrderService_GetOrders(t *testing.T) {
 			mockSetup: func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService, authorizationService *mocks.AuthorizationService) {
 				// No mocks needed
 			},
-			assertFunc: func(t *testing.T, err error, orders []*models.Order) {
-				assert.EqualError(t, err, "user id is required", "expected error when user id is missing")
-				assert.Nil(t, orders, "expected no orders when user id is missing")
-			},
+			expectedResult: mo.Errf[[]*models.Order]("user id is required"),
 		},
 		{
 			name:   "context missing user",
@@ -589,10 +497,7 @@ func TestOrderService_GetOrders(t *testing.T) {
 				paymentService.On("GetPaymentsByOrder", mock.Anything, 1).Return([]*models.Payment{}, nil)
 				authorizationService.On("IsAuthorized", mock.Anything, 1, &models.Order{ID: 1, User: &models.User{ID: 1}, Payments: []*models.Payment{}}).Return(true, nil)
 			},
-			assertFunc: func(t *testing.T, err error, orders []*models.Order) {
-				assert.EqualError(t, err, "user id is required", "expected error when user id is missing")
-				assert.Nil(t, orders, "expected no orders when user id is missing")
-			},
+			expectedResult: mo.Errf[[]*models.Order]("user id is required"),
 		},
 		{
 			name:   "storage error",
@@ -600,10 +505,7 @@ func TestOrderService_GetOrders(t *testing.T) {
 			mockSetup: func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService, authorizationService *mocks.AuthorizationService) {
 				storage.On("GetAllOrdersForUser", mock.Anything, 1).Return(mo.Errf[[]dsmodels.Order]("storage error"))
 			},
-			assertFunc: func(t *testing.T, err error, orders []*models.Order) {
-				assert.EqualError(t, err, "storage error", "expected storage error")
-				assert.Nil(t, orders, "expected no orders when storage fails")
-			},
+			expectedResult: mo.Errf[[]*models.Order]("storage error"),
 		},
 		{
 			name:   "payment service error",
@@ -616,22 +518,15 @@ func TestOrderService_GetOrders(t *testing.T) {
 				paymentService.On("GetPaymentsByOrder", mock.Anything, 1).Return(nil, errors.New("payment service error"))
 				authorizationService.On("IsAuthorized", mock.Anything, 1, &models.Order{ID: 1, User: &models.User{ID: 1}, Payments: []*models.Payment{}}).Return(true, nil)
 			},
-			assertFunc: func(t *testing.T, err error, orders []*models.Order) {
-				assert.EqualError(t, err, "payment service error", "expected payment service error")
-				assert.Nil(t, orders, "expected no orders when payment service fails")
-			},
+			expectedResult: mo.Errf[[]*models.Order]("payment service error"),
 		},
 		{
 			name:   "no orders fetched",
 			userId: 1,
 			mockSetup: func(storage *mocks.OrdersDatasource, paymentService *mocks.PaymentsService, authorizationService *mocks.AuthorizationService) {
-				//empty := make([]models.Order, 1)
 				storage.On("GetAllOrdersForUser", mock.Anything, 1).Return(mo.Ok([]dsmodels.Order{}))
 			},
-			assertFunc: func(t *testing.T, err error, orders []*models.Order) {
-				assert.NoError(t, err, "expected no error for empty results")
-				assert.Empty(t, orders, "expected no orders fetched")
-			},
+			expectedResult: mo.Ok([]*models.Order{}),
 		},
 	}
 
@@ -647,8 +542,8 @@ func TestOrderService_GetOrders(t *testing.T) {
 			testCtx := context.WithValue(ctx, constants.AuthenticatedUserIdKey, test.userId)
 			testCtx = context.WithValue(testCtx, constants.AuthenticatedUserKey, test.ctxUser)
 
-			orders, err := service.GetOrders(testCtx, test.userId)
-			test.assertFunc(t, err, orders)
+			ordersResult := service.GetOrders(testCtx, test.userId)
+			assert.Equal(t, test.expectedResult, ordersResult)
 
 			storage.AssertExpectations(t)
 			paymentService.AssertExpectations(t)
