@@ -47,15 +47,15 @@ func (s *inMemoryOrdersStorage) DeleteOrder(ctx context.Context, orderID int) er
 	return nil
 }
 
-func (s *inMemoryOrdersStorage) UpdateOrder(ctx context.Context, order dsmodels.Order) (*dsmodels.Order, error) {
+func (s *inMemoryOrdersStorage) UpdateOrder(ctx context.Context, order dsmodels.Order) monads.Result[dsmodels.Order] {
 	utils.LogAction(ctx, compOrdersStorage, "UpdateOrder")
 
 	_, exists := s.orders[order.ID]
 	if !exists {
-		return nil, errors.New("order not found")
+		return monads.Errf[dsmodels.Order]("order not found")
 	}
 	s.orders[order.ID] = order
-	return &order, nil
+	return monads.Ok(order)
 }
 
 func (s *inMemoryOrdersStorage) InsertOrder(ctx context.Context, order dsmodels.Order) (*dsmodels.Order, error) {

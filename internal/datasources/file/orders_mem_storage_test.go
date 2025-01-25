@@ -171,54 +171,44 @@ func TestDeleteOrder(t *testing.T) {
 func TestUpdateOrder(t *testing.T) {
 
 	tests := []struct {
-		name          string
-		initialOrders map[int]dsmodels.Order
-		updateOrder   dsmodels.Order
-		expectedError string
-		validate      func(*testing.T, *dsmodels.Order, error)
+		name           string
+		initialOrders  map[int]dsmodels.Order
+		updateOrder    dsmodels.Order
+		expectedError  string
+		expectedResult monads.Result[dsmodels.Order]
 	}{
 		{
 			name: "UpdateExistingOrder",
 			initialOrders: map[int]dsmodels.Order{
 				1: {ID: 1, UserId: 123, Quantity: 2},
 			},
-			updateOrder:   dsmodels.Order{ID: 1, UserId: 123, Quantity: 3},
-			expectedError: "",
-			validate: func(t *testing.T, order *dsmodels.Order, err error) {
-				assert.NoError(t, err, "unexpected error while updating existing order")
-				assert.Equal(t, &dsmodels.Order{ID: 1, UserId: 123, Quantity: 3}, order, "order details mismatch after update")
-			},
+			updateOrder:    dsmodels.Order{ID: 1, UserId: 123, Quantity: 3},
+			expectedError:  "",
+			expectedResult: monads.Ok(dsmodels.Order{ID: 1, UserId: 123, Quantity: 3}),
 		},
 		{
 			name: "UpdateNonExistentOrder",
 			initialOrders: map[int]dsmodels.Order{
 				1: {ID: 1, UserId: 123, Quantity: 2},
 			},
-			updateOrder:   dsmodels.Order{ID: 2, UserId: 456, Quantity: 1},
-			expectedError: "order not found",
-			validate: func(t *testing.T, order *dsmodels.Order, err error) {
-				assert.Nil(t, order, "expected no order to be returned for non-existent order ID")
-				assert.EqualError(t, err, "order not found", "error mismatch for non-existent order update")
-			},
+			updateOrder:    dsmodels.Order{ID: 2, UserId: 456, Quantity: 1},
+			expectedError:  "order not found",
+			expectedResult: monads.Errf[dsmodels.Order]("order not found"),
 		},
 		{
-			name:          "UpdateOrderInEmptyStorage",
-			initialOrders: map[int]dsmodels.Order{},
-			updateOrder:   dsmodels.Order{ID: 1, UserId: 123, Quantity: 1},
-			expectedError: "order not found",
-			validate: func(t *testing.T, order *dsmodels.Order, err error) {
-				assert.Nil(t, order, "expected no order to be returned for empty order storage")
-				assert.EqualError(t, err, "order not found", "error mismatch for empty storage update")
-			},
+			name:           "UpdateOrderInEmptyStorage",
+			initialOrders:  map[int]dsmodels.Order{},
+			updateOrder:    dsmodels.Order{ID: 1, UserId: 123, Quantity: 1},
+			expectedError:  "order not found",
+			expectedResult: monads.Errf[dsmodels.Order]("order not found"),
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			storage, ctx := initTestOrdersStorage(tc.initialOrders)
-
-			order, err := storage.UpdateOrder(ctx, tc.updateOrder)
-			tc.validate(t, order, err)
+			orderResult := storage.UpdateOrder(ctx, tc.updateOrder)
+			assert.Equal(t, tc.expectedResult, orderResult, "unexpected result")
 		})
 	}
 }
