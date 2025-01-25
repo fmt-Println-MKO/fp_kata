@@ -62,7 +62,8 @@ func (service *ordersService) StoreOrder(ctx context.Context, userId int, order 
 		storedOrderModelResult = service.storage.UpdateOrder(ctx, *order.ToDSModel())
 	}
 
-	newOrder := mo.Fold[error, dsmodels.Order, mo.Result[*models.Order]](storedOrderModelResult,
+	newOrder := mo.Fold(
+		storedOrderModelResult,
 		func(dsOrder dsmodels.Order) mo.Result[*models.Order] {
 			// Map stored order to the response model
 			newOrder := models.MapToOrder(dsOrder)
@@ -99,14 +100,15 @@ func (service *ordersService) GetOrder(ctx context.Context, userId int, id int) 
 	}
 
 	dsOrderResult := service.storage.GetOrder(ctx, id)
-	if dsOrderResult.IsError() {
-		return nil, dsOrderResult.Error()
-	}
 
-	orderResult := service.processDsOrder(ctx, userId, dsOrderResult.MustGet())
-	if orderResult.IsError() {
-		return nil, orderResult.Error()
-	}
+	orderResult := mo.Fold(
+		dsOrderResult,
+		func(dsOrder dsmodels.Order) mo.Result[*models.Order] {
+			return service.processDsOrder(ctx, userId, dsOrder)
+		},
+		func(err error) mo.Result[*models.Order] {
+			return mo.Err[*models.Order](err)
+		})
 
 	return orderResult.Get()
 }
@@ -118,20 +120,25 @@ func (service *ordersService) GetOrders(ctx context.Context, userId int) ([]*mod
 		return nil, errors.New("user id is required")
 	}
 	dsOrdersResult := service.storage.GetAllOrdersForUser(ctx, userId)
-	if dsOrdersResult.IsError() {
-		return nil, dsOrdersResult.Error()
-	}
 
-	var orders []*models.Order
-	for _, dsOrder := range dsOrdersResult.MustGet() {
-		orderResult := service.processDsOrder(ctx, userId, dsOrder)
-		if orderResult.IsError() {
-			return nil, orderResult.Error()
-		}
-		orders = append(orders, orderResult.MustGet())
-	}
-
-	return orders, nil
+	orders := mo.Fold(
+		dsOrdersResult,
+		func(dsOrders []dsmodels.Order) mo.Result[[]*models.Order] {
+			var orders []*models.Order
+			for _, dsOrder := range dsOrders {
+				orderResult := service.processDsOrder(ctx, userId, dsOrder)
+				if orderResult.IsError() {
+					return mo.Err[[]*models.Order](orderResult.Error())
+				}
+				orders = append(orders, orderResult.MustGet())
+			}
+			return mo.Ok(orders)
+		},
+		func(err error) mo.Result[[]*models.Order] {
+			return mo.Err[[]*models.Order](err)
+		},
+	)
+	return orders.Get()
 }
 
 func (service *ordersService) GetOrdersWithFilter(ctx context.Context, userId int, filter func(order *models.Order) bool) ([]*models.Order, error) {
@@ -141,23 +148,29 @@ func (service *ordersService) GetOrdersWithFilter(ctx context.Context, userId in
 		return nil, errors.New("user id is required")
 	}
 	dsOrdersResult := service.storage.GetAllOrdersForUser(ctx, userId)
-	if dsOrdersResult.IsError() {
-		return nil, dsOrdersResult.Error()
-	}
 
-	var filteredOrders []*models.Order
-	for _, dsOrder := range dsOrdersResult.MustGet() {
-		order := models.MapToOrder(dsOrder)
-		if filter(order) {
-			filteredOrderResult := service.processOrder(ctx, userId, order)
-			if filteredOrderResult.IsError() {
-				return nil, filteredOrderResult.Error()
+	filteredOrders := mo.Fold(
+		dsOrdersResult,
+		func(dsOrders []dsmodels.Order) mo.Result[[]*models.Order] {
+			var filteredOrders []*models.Order
+			for _, dsOrder := range dsOrdersResult.MustGet() {
+				order := models.MapToOrder(dsOrder)
+				if filter(order) {
+					filteredOrderResult := service.processOrder(ctx, userId, order)
+					if filteredOrderResult.IsError() {
+						return mo.Err[[]*models.Order](filteredOrderResult.Error())
+					}
+					filteredOrders = append(filteredOrders, filteredOrderResult.MustGet())
+				}
 			}
-			filteredOrders = append(filteredOrders, filteredOrderResult.MustGet())
-		}
-	}
+			return mo.Ok(filteredOrders)
+		},
+		func(err error) mo.Result[[]*models.Order] {
+			return mo.Err[[]*models.Order](err)
+		},
+	)
 
-	return filteredOrders, nil
+	return filteredOrders.Get()
 }
 
 func (service *ordersService) processDsOrder(ctx context.Context, userId int, storedOrder dsmodels.Order) mo.Result[*models.Order] {
