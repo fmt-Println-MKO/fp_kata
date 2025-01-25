@@ -58,14 +58,14 @@ func (s *inMemoryOrdersStorage) UpdateOrder(ctx context.Context, order dsmodels.
 	return monads.Ok(order)
 }
 
-func (s *inMemoryOrdersStorage) InsertOrder(ctx context.Context, order dsmodels.Order) (*dsmodels.Order, error) {
+func (s *inMemoryOrdersStorage) InsertOrder(ctx context.Context, order dsmodels.Order) monads.Result[dsmodels.Order] {
 	utils.LogAction(ctx, compOrdersStorage, "InsertOrder")
 
 	if _, exists := s.orders[order.ID]; exists {
-		return nil, errors.New("order already exists")
+		return monads.Errf[dsmodels.Order]("order already exists")
 	}
 	s.orders[order.ID] = order
-	return &order, nil
+	return monads.Ok(order)
 }
 
 func NewOrdersStorage() datasources.OrdersDatasource {

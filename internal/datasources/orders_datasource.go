@@ -11,5 +11,5 @@ type OrdersDatasource interface {
 	GetAllOrdersForUser(ctx context.Context, userID int) monads.Result[[]dsmodels.Order]
 	DeleteOrder(ctx context.Context, orderID int) error
 	UpdateOrder(ctx context.Context, order dsmodels.Order) monads.Result[dsmodels.Order]
-	InsertOrder(ctx context.Context, order dsmodels.Order) (*dsmodels.Order, error)
+	InsertOrder(ctx context.Context, order dsmodels.Order) monads.Result[dsmodels.Order]
 }
