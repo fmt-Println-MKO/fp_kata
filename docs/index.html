@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/pandora.css">
+		<!-- Theme used for syntax highlighted code -->
+		<link rel="stylesheet" href="plugin/highlight/night-owl.css">
+
+
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section data-background-image="./dist/theme/img/main.webp" data-background-opacity="0.5" data-background-transition="fade-out">
+					<h1>Functional Programming in Go</h1>
+				</section>
+				<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+					<h2>Ready to relieve your high school algebra nightmare?</h2>
+					<br/>
+					\[
+					T(x) = \sum_{n=0}^\infty \frac{f^{(n)}(a)}{n!}(x-a)^n
+					\]
+					<br/>
+					<span class="fragment">
+						<pre>Haskell Example:<code class="language-haskell" data-trim data-noescape>
+							taylor :: (Double -> Double) -> (Double -> Double) -> Double -> Double -> Double taylor f f' a x = f a + f' a * (x - a)
+						</code></pre>
+					</span>
+
+				</section>
+
+				<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+					<h2>Don't Worry, Gophers</h2>
+					<br/>
+					<p>It was a joke!</p>
+					<br/>
+					<p>If we were algebra professionals, we wouldn't write Go code! 😉</p>
+					<br/>
+					<p>We like things <strong>simple</strong>, <strong>easy</strong>, and <strong>small</strong>.</p>
+				</section>
+
+				<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+					<h2>What This Presentation Is About</h2>
+					<p>This presentation is <strong>not</strong> about the mathematics in functional programming.</p>
+					<p>It's about how functional programming principles can help you write <strong>better code</strong>:</p>
+					<br/>
+					<ul>
+						<li>Easy to understand</li><br/>
+						<li>Easy to maintain</li><br/>
+						<li>Easy to test</li>
+					</ul>
+				</section>
+
+				<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+					<h2>What Defines Functional Programming?</h2>
+					<h3>Core Principles</h3>
+					<ol>
+						<li class="fragment">Pure Functions<p class="footnote-text">Functions with predictable outputs and no side effects</p></li>
+						<li class="fragment">Immutability<p class="footnote-text">Data cannot be modified after creation</p></li>
+						<li class="fragment">First-Class and Higher-Order Functions<p class="footnote-text">Functions treated as first-class citizens, can be passed and returned</p></li>
+						<li class="fragment">Recursion over Loops<p class="footnote-text">Solving problems through recursive function calls instead of iterative loops</p></li>
+						<li class="fragment">Referential Transparency<p class="footnote-text">Expressions can be replaced with their values without changing program behavior</p></li>
+						<li class="fragment">Pattern Matching<p class="footnote-text">Powerful way to deconstruct and match data structures</p></li>
+						<li class="fragment">Algebraic Data Types (ADTs)<p class="footnote-text">Composing complex types from simpler ones</p></li>
+						<li class="fragment">Generics and Parametric Polymorphism<p class="footnote-text">Writing flexible, reusable code that works with multiple types</p></li>
+					</ol>
+				</section>
+
+				<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+					<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+						<h2>Which Principles Are not direclty in Go?</h2>
+						<ol>
+							<li>Immutability</li>
+							<li>Referential Transparency</li>
+							<li>Pattern Matching</li>
+							<li>Algebraic Data Types (ADTs)</li>
+						</ol>
+					</section>
+
+					<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+						<h2>Immutability</h2>
+						<p><strong>Definition:</strong> Data doesn't change after it's created.<br>
+							<strong>Benefit:</strong> Ensures thread safety and avoids side effects.</p>
+
+						<div class="two-col">
+							<div>
+								<pre>Haskell<code class="language-haskell" data-trim data-noescape>
+									let x = 5
+									let y = x + 3 -- x remains unchanged
+								</code></pre>
+							</div>
+							<div>
+								<pre>Go<code class="language-go" data-trim data-noescape>
+									x := 5
+									x = x + 3 // x is modified
+								</code></pre>
+							</div>
+						</div>
+					</section>
+
+					<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+						<h2>Referential Transparency</h2>
+						<p><strong>Definition:</strong> Same input, same output.<br>
+							<strong>Benefit:</strong> Easier reasoning and testing.</p>
+
+						<div class="two-col">
+							<div>
+								<pre>Haskell<code class="language-haskell" data-trim data-noescape>
+									square x = x * x
+									square 5 -- Always evaluates to 25
+								</code></pre>
+							</div>
+							<div>
+								<pre>Go<code class="language-go" data-trim data-noescape>
+									func square(x int) int {
+										fmt.Println("Squaring", x) // Side effect
+										return x * x
+									}
+								</code></pre>
+							</div>
+						</div>
+					</section>
+
+					<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+						<h2>Pattern Matching</h2>
+						<p><strong>Definition:</strong> Simplifies control flow by destructuring and analyzing data.</p>
+
+						<div class="two-col">
+							<div>
+								<pre>Haskell<code class="language-haskell" data-trim data-noescape>
+									data Shape = Circle Float | Rectangle Float Float
+
+									area :: Shape -> Float
+									area (Circle r) = pi * r * r
+									area (Rectangle w h) = w * h
+								</code></pre>
+							</div>
+							<div>
+								<pre>Go<code class="language-go" data-trim data-noescape>
+									type Shape interface{}
+									type Circle struct { Radius float64 }
+									type Rectangle struct { Width, Height float64 }
+
+									func area(s Shape) float64 {
+										switch shape := s.(type) {
+											case Circle:
+												return math.Pi * shape.Radius * shape.Radius
+											case Rectangle:
+												return shape.Width * shape.Height
+											default:
+												return 0
+										}
+									}
+								</code></pre>
+							</div>
+						</div>
+					</section>
+
+					<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+						<h2>Algebraic Data Types (ADTs)</h2>
+						<p><strong>Definition:</strong> Structuring data concisely using sum and product types.</p>
+
+						<div class="two-col">
+							<div>
+								<pre>Haskell<code class="language-haskell">data Result = Success String | Failure String</code></pre>
+							</div>
+							<div>
+								<pre>Go<code class="language-go" data-trim data-noescape>
+									type Result struct {
+										Success bool
+										Message string
+									}
+								</code></pre>
+							</div>
+						</div>
+					</section>
+				</section>
+
+				<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+					<h2>What Functional Principles Are Available in Go?</h2>
+					<ol>
+						<li>Manual Composition</li>
+						<li>Generics (introduced in Go 1.18+)</li>
+						<li>First-Class and Higher-Order Functions</li>
+						<li>Closures (anonymous functions)</li>
+						<li>Pure Functions (with manual effort to avoid side effects)</li>
+					</ol>
+				</section>
+
+				<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+					<h2>Composition in Go</h2>
+					<p><strong>Definition:</strong> Combining smaller functions into larger ones.</p>
+					<pre><code class="language-go" data-trim data-noescape>
+						func compose(f, g func(int) int) func(int) int {
+							return func(x int) int {
+								return f(g(x))
+							}
+						}
+
+						func add(x int) int { return x + 2 }
+						func multiply(x int) int { return x * 3 }
+
+						func main() {
+							composed := compose(add, multiply)
+							fmt.Println(composed(5)) // Output: 17
+						}
+					</code></pre>
+				</section>
+
+				<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+					<h2>Monads as a Tool for Composition</h2>
+					<p><strong>Definition:</strong> Monads provide a structured way to compose computations with context (e.g., optional values or errors).</p>
+					<pre><code class="language-go" data-trim data-noescape>
+						type Maybe[T any] struct {
+							Value T
+							Valid bool
+						}
+						func (m Maybe[T]) Map(f func(T) T) Maybe[T] {
+							if m.Valid {
+								return Maybe[T]{Value: f(m.Value), Valid: true}
+							}
+							return m
+						}
+
+						func main() {
+							value := Maybe[int]{Value: 5, Valid: true}
+							result := value.
+							Map(func(x int) int { return x * 2 }).
+							Map(func(x int) int { return x + 3 })
+							fmt.Println(result) // Output: {Value: 13, Valid: true}
+						}
+					</code></pre>
+				</section>
+
+				<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+					<h2>What's a Monad?</h2>
+					<p><strong>Definition:</strong> A design pattern for chaining computations with context.</p>
+					<p><strong>Analogy:</strong> Think of a monad as a gift box for values:</p>
+					<ul>
+						<li>The box wraps the value.</li>
+						<li>It adds rules for how to unwrap or manipulate it safely.</li>
+					</ul>
+					<p><strong>Goal:</strong> Simplify chaining actions and managing side effects systematically.</p>
+				</section>
+			</div>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script src="plugin/math/math.js"></script>
+		<script>
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				hash: true,
+				slideNumber: "c/t",
+				disableLayout: false,
+				//width: "100%",
+				//height: "100%",
+				//minScale: 1,
+				//maxScale: 1,
+				//			center: true,
+				width: 1100,
+				//height: 700,
+				//margin: 0.05,
+
+
+
+				controls: true,
+				progress: true,
+				mouseWheel: false,
+				showNotes: false,
+				fragmentInURL: true,
+				autoSlide: 0,
+				autoSlideStoppable: true,
+				//autoAnimateMatcher: SL.deck.AutoAnimate.matcher,
+
+				scrollActivationWidth: null,
+				//center: false,
+				shuffle: false,
+				loop: false,
+				rtl: false,
+				navigationMode: "default",
+				transition: "fade",
+				backgroundTransition: "zoom",
+				highlight: {
+					escapeHTML: false
+				},
+				//minScale: 0.2,
+				//maxScale: 1.0,
+				//controls: true,
+				//progress: true,
+				//history: true,
+				//center: true,
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX]
+			});
+		</script>
+	</body>
+</html>

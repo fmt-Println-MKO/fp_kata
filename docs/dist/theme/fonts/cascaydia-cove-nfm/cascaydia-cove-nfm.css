@@ -1,0 +1,45 @@
+@font-face {
+    font-family: 'CaskaydiaCove NFM';
+    src: url('CaskaydiaCoveNFM-Bold.eot');
+    src: url('CaskaydiaCoveNFM-Bold.eot?#iefix') format('embedded-opentype'),
+        url('CaskaydiaCoveNFM-Bold.woff2') format('woff2');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'CaskaydiaCove NFM';
+    src: url('CaskaydiaCoveNFM-Regular.eot');
+    src: url('CaskaydiaCoveNFM-Regular.eot?#iefix') format('embedded-opentype'),
+        url('CaskaydiaCoveNFM-Regular.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'CaskaydiaCove NFM';
+    src: url('CaskaydiaCoveNFM-Light.eot');
+    src: url('CaskaydiaCoveNFM-Light.eot?#iefix') format('embedded-opentype'),
+        url('CaskaydiaCoveNFM-Light.woff2') format('woff2');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'CaskaydiaCove NFM';
+    src: url('CaskaydiaCoveNFM-Italic.eot');
+    src: url('CaskaydiaCoveNFM-Italic.eot?#iefix') format('embedded-opentype'),
+        url('CaskaydiaCoveNFM-Italic.woff2') format('woff2');
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'CaskaydiaCove NFM';
+    src: url('CaskaydiaCoveNFM-BoldItalic.eot');
+    src: url('CaskaydiaCoveNFM-BoldItalic.eot?#iefix') format('embedded-opentype'),
+        url('CaskaydiaCoveNFM-BoldItalic.woff2') format('woff2');
+    font-weight: bold;
+    font-style: italic;
+}
+
