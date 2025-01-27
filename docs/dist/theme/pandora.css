@@ -3,14 +3,13 @@
  */
 @import url(./fonts/cascaydia-cove-nfm/cascaydia-cove-nfm.css);
 :root {
-  --r-bold-color: #d9242b;
+  --r-bold-color: #df1067;
   --r-italic-color: #ff2b85;
   --r-inline-code-color: #df1067;
   --r-list-bullet-color: #b8209d;
 }
 
 .reveal h1, .reveal h2, .reveal h3, .reveal h4, .reveal h5, .reveal h6 {
-  font-style: italic;
   font-weight: bold;
   font-family: "CaskaydiaCove NFM";
 }
@@ -388,4 +387,11 @@ section.has-dark-background, section.has-dark-background h1, section.has-dark-ba
   font-size: 0.6em;
   margin-top: 4px;
   margin-bottom: 10px;
+}
+.reveal .left-align {
+  text-align: left;
+}
+.reveal .centered {
+  text-align: left;
+  display: inline-block;
 }
