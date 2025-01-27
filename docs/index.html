@@ -4,7 +4,12 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>reveal.js</title>
+		<title>Go Functional Programming Kata</title>
+
+		<link rel="apple-touch-icon" sizes="180x180" href="./dist/theme/img/apple-touch-icon.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="./dist/theme/img/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="./dist/theme/img/favicon-16x16.png">
+		<link rel="manifest" href="./site.webmanifest">
 
 		<link rel="stylesheet" href="dist/reset.css">
 		<link rel="stylesheet" href="dist/reveal.css">
@@ -17,10 +22,12 @@
 	<body>
 		<div class="reveal">
 			<div class="slides">
-				<section data-background-image="./dist/theme/img/main.webp" data-background-opacity="0.5" data-background-transition="fade-out">
-					<h1>Functional Programming in Go</h1>
+				<section data-background-image="./dist/theme/img/main.webp" >
+
+					<h1 style="color: #f8f9fb; margin-top: 160px">Functional Programming in Go</h1>
+					<img class="r-stretch" alt="Functioal Kata Gopher" src="./dist/theme/img/fp_kata_gopher.png"/>
 				</section>
-				<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+				<section data-background-image="./dist/theme/img/background.png" >
 					<h2>Ready to relieve your high school algebra nightmare?</h2>
 					<br/>
 					\[
@@ -35,7 +42,7 @@
 
 				</section>
 
-				<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+				<section data-background-image="./dist/theme/img/background.png" >
 					<h2>Don't Worry, Gophers</h2>
 					<br/>
 					<p>It was a joke!</p>
@@ -45,7 +52,7 @@
 					<p>We like things <strong>simple</strong>, <strong>easy</strong>, and <strong>small</strong>.</p>
 				</section>
 
-				<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+				<section data-background-image="./dist/theme/img/background.png" >
 					<h2>What This Presentation Is About</h2>
 					<p>This presentation is <strong>not</strong> about the mathematics in functional programming.</p>
 					<p>It's about how functional programming principles can help you write <strong>better code</strong>:</p>
@@ -57,13 +64,15 @@
 					</ul>
 				</section>
 
-				<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+				<section data-background-image="./dist/theme/img/background.png"  data-auto-animate="box">
 					<h2>What Defines Functional Programming?</h2>
 					<h3>Core Principles</h3>
 					<ol>
 						<li class="fragment">Pure Functions<p class="footnote-text">Functions with predictable outputs and no side effects</p></li>
 						<li class="fragment">Immutability<p class="footnote-text">Data cannot be modified after creation</p></li>
 						<li class="fragment">First-Class and Higher-Order Functions<p class="footnote-text">Functions treated as first-class citizens, can be passed and returned</p></li>
+						<li class="fragment">Composability<p class="footnote-text">Functions are composable, allowing small, simple functions to combine into complex functionality.</p></li>
+						<li class="fragment">"Closures"<p class="footnote-text">A closure is a function that captures its scope, allowing access to variables after the scope exits.</p></li>
 						<li class="fragment">Recursion over Loops<p class="footnote-text">Solving problems through recursive function calls instead of iterative loops</p></li>
 						<li class="fragment">Referential Transparency<p class="footnote-text">Expressions can be replaced with their values without changing program behavior</p></li>
 						<li class="fragment">Pattern Matching<p class="footnote-text">Powerful way to deconstruct and match data structures</p></li>
@@ -72,21 +81,25 @@
 					</ol>
 				</section>
 
-				<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
-					<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+				<section data-background-image="./dist/theme/img/background.png"  >
+					<section data-background-image="./dist/theme/img/background.png"  data-auto-animate="box">
 						<h2>Which Principles Are not direclty in Go?</h2>
 						<ol>
-							<li>Immutability</li>
-							<li>Referential Transparency</li>
-							<li>Pattern Matching</li>
-							<li>Algebraic Data Types (ADTs)</li>
+							<li>Immutability<p class="footnote-text">Data cannot be modified after creation</p></li>
+							<li>Recursion over Loops<p class="footnote-text">Solving problems through recursive function calls instead of iterative loops</p></li>
+							<li>Referential Transparency<p class="footnote-text">Expressions can be replaced with their values without changing program behavior</p></li>
+							<li>Pattern Matching<p class="footnote-text">Powerful way to deconstruct and match data structures</p></li>
+							<li>Algebraic Data Types (ADTs)<p class="footnote-text">Composing complex types from simpler ones</p></li>
 						</ol>
 					</section>
 
-					<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+					<section data-background-image="./dist/theme/img/background.png" >
 						<h2>Immutability</h2>
-						<p><strong>Definition:</strong> Data doesn't change after it's created.<br>
-							<strong>Benefit:</strong> Ensures thread safety and avoids side effects.</p>
+
+						<div class="two-col centered">
+							<div ><strong>Definition:</strong> Data doesn't change after it's created.</div>
+							<div><strong>Benefit:</strong> Ensures thread safety and avoids side effects.</div>
+						</div>
 
 						<div class="two-col">
 							<div>
@@ -104,9 +117,9 @@
 						</div>
 					</section>
 
-					<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+					<section data-background-image="./dist/theme/img/background.png" >
 						<h2>Referential Transparency</h2>
-						<p><strong>Definition:</strong> Same input, same output.<br>
+						<p class="centered"><strong>Definition:</strong> Same input, same output.<br>
 							<strong>Benefit:</strong> Easier reasoning and testing.</p>
 
 						<div class="two-col">
@@ -127,10 +140,10 @@
 						</div>
 					</section>
 
-					<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+					<section data-background-image="./dist/theme/img/background.png" >
 						<h2>Pattern Matching</h2>
 						<p><strong>Definition:</strong> Simplifies control flow by destructuring and analyzing data.</p>
-
+TODO
 						<div class="two-col">
 							<div>
 								<pre>Haskell<code class="language-haskell" data-trim data-noescape>
@@ -162,7 +175,7 @@
 						</div>
 					</section>
 
-					<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
+					<section data-background-image="./dist/theme/img/background.png" >
 						<h2>Algebraic Data Types (ADTs)</h2>
 						<p><strong>Definition:</strong> Structuring data concisely using sum and product types.</p>
 
@@ -182,72 +195,251 @@
 					</section>
 				</section>
 
-				<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
-					<h2>What Functional Principles Are Available in Go?</h2>
+				<section data-background-image="./dist/theme/img/background.png"  data-auto-animate>
+					<h2>What Functional Principles Are Available?</h2>
 					<ol>
-						<li>Manual Composition</li>
-						<li>Generics (introduced in Go 1.18+)</li>
-						<li>First-Class and Higher-Order Functions</li>
-						<li>Closures (anonymous functions)</li>
-						<li>Pure Functions (with manual effort to avoid side effects)</li>
+						<li>Pure Functions<p class="footnote-text">with manual effort to avoid side effects</p></li>
+						<li>Composability<p class="footnote-text">manuall compostion</li>
+						<li>First-Class and Higher-Order Functions<p class="footnote-text">fully covered</p></li>
+						<li>Closures<p class="footnote-text">fully covered</p></li>
+						<li>Generics and Parametric Polymorphism<p class="footnote-text">introduced in Go 1.18+, excluding methods</p></li>
 					</ol>
 				</section>
 
-				<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
-					<h2>Composition in Go</h2>
-					<p><strong>Definition:</strong> Combining smaller functions into larger ones.</p>
-					<pre><code class="language-go" data-trim data-noescape>
-						func compose(f, g func(int) int) func(int) int {
-							return func(x int) int {
-								return f(g(x))
-							}
-						}
+				<section data-background-image="./dist/theme/img/background.png" >
+					<aside class="notes">
+						We've seen how pure functions transform values in predictable ways.
+						But in real applications, we often need to add context to these transformations
+						- like handling errors,
+						dealing with optional values,
+						or managing side effects.
 
-						func add(x int) int { return x + 2 }
-						func multiply(x int) int { return x * 3 }
+						What if we could wrap our values in a way
+						that adds this extra context while preserving our ability to chain operations?
+  					</aside>
+					<h2>From Principles to Practice: Building Blocks</h2>
+					<br/>
+					<p class="left-align"><h3 class="left-align">Pure Functions</h3>Functions that always return the same output for the same input and produce no side effects</p>
+					<pre><code class="language-go" data-line-numbers="1|3-10|12-18" data-trim data-noescape>
+f(x) → y   // Always same output for same input
 
-						func main() {
-							composed := compose(add, multiply)
-							fmt.Println(composed(5)) // Output: 17
-						}
+func square(x int) int {   // A pure function in Go. It is deterministic and satisfies referential transparency.
+    return x * x
+}
+
+// For any x:
+square(4)  // Always returns 16
+square(4)  // Always returns 16
+square(4)  // Always returns 16
+
+// But real world has side effects:
+// - File operations might fail
+// - Network calls can timeout
+// - Values might be missing
+// - Operations can fail
+                             ↓
+function wrapValue(x) → box(x)   // What if we could extend this?</code></pre>
+				</section>
+
+
+
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2>Patterns for Composition</h2>
+					<br/>
+					<pre >Values with a context<code   data-trim data-noescape>
+Simple Value:     42
+With Context:     Result[42]  // Success(42) or Error("failed")
+                  Optional[42] // Some(42) or None()
+					</code></pre>
+
+				  <pre class="fragment">In Go:<code   data-trim data-noescape>
+type Result[T any] struct {
+    value T
+    err   error
+}
+
+// These containers let us:
+func Transform[T, U any](r Result[T], f func(T) U) Result[U]
+func Chain[T, U any](r Result[T], f func(T) Result[U]) Result[U]
+					</code></pre>
+					<p class="fragment left-align">These containers are called <strong>Monads</strong></p>
+
+					<aside class="notes">
+						Just as pure functions help us reason about transformations,
+						these special containers help us reason about common patterns in our code.
+						A monad is simply a container that follows specific rules about how values can be wrapped and transformed.
+					</aside>
+				</section>
+
+
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2>What is a Monad?</h2>
+					<br/>
+					<p >Think of it as a container that follows <i>three</i> simple rules:</p>
+
+					<ol>
+						<li class="fragment">It can <i>wrap any value</i>         (like putting a gift in a box)</li>
+						<li class="fragment">You can <i>transform</i> the value   (while it stays in the box)</li>
+						<li class="fragment">You can <i>chain</i> operations      (passing the boxed value along)</li>
+					</ol>
+					<p class="fragment">See? Monads aren't scary - they're just smart boxes!</p>
+
+				</section>
+
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2>Practical example</h2>
+					<br/>
+					<h3>error handling</h3>
+					<pre>thats how typical function call looks like in go:<code   data-trim data-noescape>
+				value, err := doSomething()
+				if err != nil {
+				    return err
+				}
+				// use value
 					</code></pre>
 				</section>
 
-				<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
-					<h2>Monads as a Tool for Composition</h2>
-					<p><strong>Definition:</strong> Monads provide a structured way to compose computations with context (e.g., optional values or errors).</p>
-					<pre><code class="language-go" data-trim data-noescape>
-						type Maybe[T any] struct {
-							Value T
-							Valid bool
-						}
-						func (m Maybe[T]) Map(f func(T) T) Maybe[T] {
-							if m.Valid {
-								return Maybe[T]{Value: f(m.Value), Valid: true}
-							}
-							return m
-						}
-
-						func main() {
-							value := Maybe[int]{Value: 5, Valid: true}
-							result := value.
-							Map(func(x int) int { return x * 2 }).
-							Map(func(x int) int { return x + 3 })
-							fmt.Println(result) // Output: {Value: 13, Valid: true}
-						}
-					</code></pre>
-				</section>
-
-				<section data-background-image="./dist/theme/img/background.png" data-background-opacity="0.5">
-					<h2>What's a Monad?</h2>
-					<p><strong>Definition:</strong> A design pattern for chaining computations with context.</p>
-					<p><strong>Analogy:</strong> Think of a monad as a gift box for values:</p>
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2>Lets checkout the code</h2>
+					<div>
+						<a href="https://github.com/fmt-Println-MKO/fp_kata/tree/8ffcdcbba417e875aec777b43969f17b0e213e04/internal" target="_blank"> --> Projekt Code</a>
+					</div>
 					<ul>
-						<li>The box wraps the value.</li>
-						<li>It adds rules for how to unwrap or manipulate it safely.</li>
+						<li>typical code structue</li>
+						<li>3 layerd architecture - data layer, business layer, api layer</li>
+						<li>It simulates an app that can register users, and users can place an order with associated payments.</li>
+						<li>It contains of logging and authentication middleware and simulates an authorization service</li>
+						<li>full unit test coverage</li>
+						<li><a href="https://github.com/fmt-Println-MKO/fp_kata/blob/8ffcdcbba417e875aec777b43969f17b0e213e04/FP-Kata.http" target="_blank">GoLand/IntelliJ</a> API calls available</li>
 					</ul>
-					<p><strong>Goal:</strong> Simplify chaining actions and managing side effects systematically.</p>
+
 				</section>
+
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2 >Lets look at the order datalayer</h2>
+					<div>
+						<a href="https://github.com/fmt-Println-MKO/fp_kata/blob/8ffcdcbba417e875aec777b43969f17b0e213e04/internal/datasources/file/orders_mem_storage.go" target="_blank">orders_mem_storage.go</a>
+					</div>
+					<ul>
+						<li>simple in memory storage for orders</li>
+						<li>classic go layout with returning value and erros</li>
+					</ul>
+
+				</section>
+
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2 >Lets look at the order datalayer Unit test</h2>
+					<div>
+						<a href="https://github.com/fmt-Println-MKO/fp_kata/blob/8ffcdcbba417e875aec777b43969f17b0e213e04/internal/datasources/file/orders_mem_storage_test.go" target="_blank">orders_mem_storage_test.go</a>
+					</div>
+					<ul>
+						<li>unit test avoid any conditional logic inside the runner</li>
+						<li>to make clear what is expected from each test, a validate function need to be added</li>
+						<li>that moves all the assertions into the test description and out of the runner</li>
+						<li>not ideal, but better compared to having conditions within in the runner as it forces every new test case to thing about the expected result</li>
+					</ul>
+
+				</section>
+
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2 >How Monads could solve it.</h2>
+					<p>switch to the Step 1 branch for the monads.</p>
+					<p>lets create our own result monad</p>
+					<div>
+						<a href="https://github.com/fmt-Println-MKO/fp_kata/blob/692328122ffc480830941fb54981dedc3f80d5f1/common/monads/result.go" target="_blank">result.go</a>
+					</div>
+					<p>What is this Monad about?</p>
+					<ul>
+						<li>It is a container for anything</li>
+						<li>it capsulates either a result value or an error and know if is as a valid result or not</li>
+						<li>It can be easily created with the OK or the Err (Errf) function</li>
+						<li>It provides methods to provide information about the context: IsOk(), IsError()</li>
+						<li>It provides method to retrieve its value: MustGet() and Error()</li>
+					</ul>
+
+				</section>
+
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2 >Lets use this Monad in our Order staroage</h2>
+
+					<div>
+						<a href="https://github.com/fmt-Println-MKO/fp_kata/blob/692328122ffc480830941fb54981dedc3f80d5f1/internal/datasources/file/orders_mem_storage.go" target="_blank">orders_mem_storage.go</a>
+					</div>
+					<p>What has changes?</p>
+					<ul>
+						<li>We only return a single value now, our Resut Monad instead of two before (order and error)</li>
+						<li>we use the helper functions to cunstruct the Monad</li>
+						<li>Ok() for the postive case</li>
+						<li>Errf() for the negative case</li>
+						<li>thats it.</li>
+					</ul>
+					<p>Not a big change yet?</p>
+				</section>
+
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2 >Lets look how this affected our Unit Test</h2>
+
+					<div>
+						<a href="https://github.com/fmt-Println-MKO/fp_kata/blob/692328122ffc480830941fb54981dedc3f80d5f1/internal/datasources/file/orders_mem_storage_test.go" target="_blank">orders_mem_storage_test.go</a>
+					</div>
+					<p>What has changed here?</p>
+					<ul>
+						<li>No more helper functions</li>
+						<li>No more validate functions in the test description</li>
+						<li>all assertions are now in the runner itself</li>
+						<li>no conditional logic inside the runner</li>
+						<li>a single assert covers it all</li>
+
+					</ul>
+					<p>You think about result in your test description and no more about validations and assertions</p>
+					<p>Isn't that simpler and easier?</p>
+
+				</section>
+
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2 >How does this change affect the Service layer?</h2>
+
+					<div>
+						<a href="https://github.com/fmt-Println-MKO/fp_kata/blob/692328122ffc480830941fb54981dedc3f80d5f1/internal/services/orders_service.go" target="_blank">orders_service.go</a>
+					</div>
+					<p>What has changed here?</p>
+					<ul>
+						<li>we only receive the Result Monad</li>
+						<li>so client of order storage can no more ignore a possible error</li>
+						<li>We us a method now (no more an expression) to ask the Result Monad about is context if there was an error</li>
+					</ul>
+					<p>Asking the monad about its result context is more natural language</p>
+					<p>Isn't that simpler and easier?</p>
+
+				</section>
+
+
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2 >Step 1 to functional Style in Go is done :)</h2>
+
+
+					<p>Conclusion</p>
+					<p>While using a Result Monad in the orders data storage, we gained:</p>
+					<ul>
+						<li>only return a single entity</li>
+						<li>it makes our unit test a lot easier</li>
+						<li>Clients can no more ignore erros</li>
+						<li>Using a speaking method is closer to natural language to understand what the code is about</li>
+					</ul>
+
+					<p>Lets Go to step 2, and speak about Chaning</p>
+
+				</section>
+
+
+
+
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2>Title</h2>
+				</section>
+
+
+
 			</div>
 		</div>
 
