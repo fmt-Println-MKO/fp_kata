@@ -22,13 +22,18 @@
 	<body>
 		<div class="reveal">
 			<div class="slides">
-				<section data-background-image="./dist/theme/img/main.webp" >
 
-					<h1 style="color: #f8f9fb; margin-top: 160px">Functional Programming in Go</h1>
-					<img class="r-stretch" alt="Functioal Kata Gopher" src="./dist/theme/img/fp_kata_gopher.png"/>
+
+				<section data-background-image="./dist/theme/img/main.webp">
+					<h1 style="color: #f8f9fb; margin-top: 120px">Functional Programming in Go</h1>
+					<img class="r-stretch" alt="Functional Kata Gopher" src="./dist/theme/img/fp_kata_gopher.png"/>
+					<div class="left-align" style="color: #f8f9fb; padding-left: 4px; background-color:rgba(0, 0, 0, 0.5);">Matthias Koch | <span class="footnote-text">Delivery Hero</span></div>
+					<div class="footnote-text left-align" style="color: #f8f9fb; padding-left: 4px; background-color:rgba(0, 0, 0, 0.5);">functional style since 2013 - Skala Java Kotlin Haskell-(EM) <b style="font-weight:bold; font-size: 1.6em; color: #f8f9fb; ">Go</b> Dart</div>
 				</section>
+
+
 				<section data-background-image="./dist/theme/img/background.png" >
-					<h2>Ready to relieve your high school algebra nightmare?</h2>
+					<h2>Ready To Relieve Your High School Algebra Nightmare?</h2>
 					<br/>
 					\[
 					T(x) = \sum_{n=0}^\infty \frac{f^{(n)}(a)}{n!}(x-a)^n
@@ -39,8 +44,8 @@
 							taylor :: (Double -> Double) -> (Double -> Double) -> Double -> Double -> Double taylor f f' a x = f a + f' a * (x - a)
 						</code></pre>
 					</span>
-
 				</section>
+
 
 				<section data-background-image="./dist/theme/img/background.png" >
 					<h2>Don't Worry, Gophers</h2>
@@ -52,17 +57,24 @@
 					<p>We like things <strong>simple</strong>, <strong>easy</strong>, and <strong>small</strong>.</p>
 				</section>
 
+
 				<section data-background-image="./dist/theme/img/background.png" >
 					<h2>What This Presentation Is About</h2>
 					<p>This presentation is <strong>not</strong> about the mathematics in functional programming.</p>
-					<p>It's about how functional programming principles can help you write <strong>better code</strong>:</p>
-					<br/>
-					<ul>
-						<li>Easy to understand</li><br/>
-						<li>Easy to maintain</li><br/>
-						<li>Easy to test</li>
-					</ul>
+					<div style="display: flex; align-items: center; gap: 20px;">
+						<div>
+						    <p class="left-align">Our brain (our natural language model) has at least <br/>a 6-year advantage in training natural language over math.</p>
+							<p class="fragment left-align">It's about how functional programming principles can help you write <strong>better code</strong>:</p>
+							<ul class="fragment left-align">
+								<li>Easy to understand</li><br/>
+								<li>Easy to maintain</li><br/>
+								<li>Easy to test</li>
+							</ul>
+						</div>
+					    <img class="r-stretch" alt="Brain Natural vs Math" width="400px" src="./dist/theme/img/math-brain.webp"/>
+					</div>
 				</section>
+
 
 				<section data-background-image="./dist/theme/img/background.png"  data-auto-animate="box">
 					<h2>What Defines Functional Programming?</h2>
@@ -71,19 +83,30 @@
 						<li class="fragment">Pure Functions<p class="footnote-text">Functions with predictable outputs and no side effects</p></li>
 						<li class="fragment">Immutability<p class="footnote-text">Data cannot be modified after creation</p></li>
 						<li class="fragment">First-Class and Higher-Order Functions<p class="footnote-text">Functions treated as first-class citizens, can be passed and returned</p></li>
-						<li class="fragment">Composability<p class="footnote-text">Functions are composable, allowing small, simple functions to combine into complex functionality.</p></li>
-						<li class="fragment">"Closures"<p class="footnote-text">A closure is a function that captures its scope, allowing access to variables after the scope exits.</p></li>
+						<li class="fragment">Composability<p class="footnote-text">Functions are composable, allowing small, simple functions to combine into complex functionality</p></li>
+						<li class="fragment">"Closures"<p class="footnote-text">A closure is a function that captures its scope, allowing access to variables after the scope exits</p></li>
 						<li class="fragment">Recursion over Loops<p class="footnote-text">Solving problems through recursive function calls instead of iterative loops</p></li>
 						<li class="fragment">Referential Transparency<p class="footnote-text">Expressions can be replaced with their values without changing program behavior</p></li>
 						<li class="fragment">Pattern Matching<p class="footnote-text">Powerful way to deconstruct and match data structures</p></li>
-						<li class="fragment">Algebraic Data Types (ADTs)<p class="footnote-text">Composing complex types from simpler ones</p></li>
 						<li class="fragment">Generics and Parametric Polymorphism<p class="footnote-text">Writing flexible, reusable code that works with multiple types</p></li>
+						<li class="fragment">Algebraic Data Types (ADTs)<p class="footnote-text">Composing complex types from simpler ones</p></li>
 					</ol>
+					<aside class="notes">
+						Pattern Matching:
+						more then equal.
+						where to check if a has the brand name Mercedes
+						it is more like checking if this car is a Mercedes with a Diesel engine with 400 hourse powers.
+
+						and here is the Algebra.
+						but i said we don't want to talk about math..
+						so lets skip..
+  					</aside>
 				</section>
+
 
 				<section data-background-image="./dist/theme/img/background.png"  >
 					<section data-background-image="./dist/theme/img/background.png"  data-auto-animate="box">
-						<h2>Which Principles Are not direclty in Go?</h2>
+						<h2>Which Principles are not directly in Go?</h2>
 						<ol>
 							<li>Immutability<p class="footnote-text">Data cannot be modified after creation</p></li>
 							<li>Recursion over Loops<p class="footnote-text">Solving problems through recursive function calls instead of iterative loops</p></li>
@@ -91,16 +114,19 @@
 							<li>Pattern Matching<p class="footnote-text">Powerful way to deconstruct and match data structures</p></li>
 							<li>Algebraic Data Types (ADTs)<p class="footnote-text">Composing complex types from simpler ones</p></li>
 						</ol>
+						<aside class="notes">
+							o 50% is still in, which could be worth exploring
+							But good thing, the worst things are out
+	  					</aside>
 					</section>
+
 
 					<section data-background-image="./dist/theme/img/background.png" >
 						<h2>Immutability</h2>
-
 						<div class="two-col centered">
 							<div ><strong>Definition:</strong> Data doesn't change after it's created.</div>
 							<div><strong>Benefit:</strong> Ensures thread safety and avoids side effects.</div>
 						</div>
-
 						<div class="two-col">
 							<div>
 								<pre>Haskell<code class="language-haskell" data-trim data-noescape>
@@ -117,11 +143,11 @@
 						</div>
 					</section>
 
+
 					<section data-background-image="./dist/theme/img/background.png" >
 						<h2>Referential Transparency</h2>
 						<p class="centered"><strong>Definition:</strong> Same input, same output.<br>
 							<strong>Benefit:</strong> Easier reasoning and testing.</p>
-
 						<div class="two-col">
 							<div>
 								<pre>Haskell<code class="language-haskell" data-trim data-noescape>
@@ -140,10 +166,10 @@
 						</div>
 					</section>
 
+
 					<section data-background-image="./dist/theme/img/background.png" >
 						<h2>Pattern Matching</h2>
 						<p><strong>Definition:</strong> Simplifies control flow by destructuring and analyzing data.</p>
-TODO
 						<div class="two-col">
 							<div>
 								<pre>Haskell<code class="language-haskell" data-trim data-noescape>
@@ -155,7 +181,7 @@ TODO
 								</code></pre>
 							</div>
 							<div>
-								<pre>Go<code class="language-go" data-trim data-noescape>
+								<pre>Go<code class="language-go" data-trim data-noescape data-line-numbers="|1,5">
 									type Shape interface{}
 									type Circle struct { Radius float64 }
 									type Rectangle struct { Width, Height float64 }
@@ -173,12 +199,13 @@ TODO
 								</code></pre>
 							</div>
 						</div>
+						<p>Everthing could be added here, no pattern matching, better use inteface with defined Area() function</p>
 					</section>
+
 
 					<section data-background-image="./dist/theme/img/background.png" >
 						<h2>Algebraic Data Types (ADTs)</h2>
 						<p><strong>Definition:</strong> Structuring data concisely using sum and product types.</p>
-
 						<div class="two-col">
 							<div>
 								<pre>Haskell<code class="language-haskell">data Result = Success String | Failure String</code></pre>
@@ -195,16 +222,21 @@ TODO
 					</section>
 				</section>
 
+
 				<section data-background-image="./dist/theme/img/background.png"  data-auto-animate>
-					<h2>What Functional Principles Are Available?</h2>
+					<h2>What Functional Principles are Available?</h2>
 					<ol>
 						<li>Pure Functions<p class="footnote-text">with manual effort to avoid side effects</p></li>
-						<li>Composability<p class="footnote-text">manuall compostion</li>
+						<li>Composability<p class="footnote-text">manual composition</li>
 						<li>First-Class and Higher-Order Functions<p class="footnote-text">fully covered</p></li>
 						<li>Closures<p class="footnote-text">fully covered</p></li>
 						<li>Generics and Parametric Polymorphism<p class="footnote-text">introduced in Go 1.18+, excluding methods</p></li>
 					</ol>
+					<aside class="notes">
+						lets see what this is about and how it works in go
+  					</aside>
 				</section>
+
 
 				<section data-background-image="./dist/theme/img/background.png" >
 					<aside class="notes">
@@ -239,8 +271,17 @@ square(4)  // Always returns 16
 // - Operations can fail
                              ↓
 function wrapValue(x) → box(x)   // What if we could extend this?</code></pre>
-				</section>
+					<aside class="notes">
+						that sounds to simple, yes, real worl is mostly more complex
 
+						there are side effects
+						 and mmany reasons why our function could fail
+
+						 So what if would would change our function, to instead of return a simple value
+						 return a box that contains this value, and the box covers those side effects?
+
+  					</aside>
+				</section>
 
 
 				<section data-background-image="./dist/theme/img/background.png" >
@@ -269,6 +310,21 @@ func Chain[T, U any](r Result[T], f func(T) Result[U]) Result[U]
 						these special containers help us reason about common patterns in our code.
 						A monad is simply a container that follows specific rules about how values can be wrapped and transformed.
 					</aside>
+					<aside class="notes">
+						so instead of a single value, lets add a context that gives a description of what happend
+
+						like a Result. A result of a function, can be either success or there was an error
+						or an Optional result, because sometimes we have a result, but no all the time.
+
+
+						If we create those boxes in go, that is how they could look like
+
+						So define a struct our box, and store a value and an error inside
+
+						Once we have such a box, we could add some methods, for example to transform our value or to chain it.
+
+In FP those boxes are colled Monads
+  					</aside>
 				</section>
 
 
@@ -276,20 +332,19 @@ func Chain[T, U any](r Result[T], f func(T) Result[U]) Result[U]
 					<h2>What is a Monad?</h2>
 					<br/>
 					<p >Think of it as a container that follows <i>three</i> simple rules:</p>
-
 					<ol>
 						<li class="fragment">It can <i>wrap any value</i>         (like putting a gift in a box)</li>
 						<li class="fragment">You can <i>transform</i> the value   (while it stays in the box)</li>
 						<li class="fragment">You can <i>chain</i> operations      (passing the boxed value along)</li>
 					</ol>
 					<p class="fragment">See? Monads aren't scary - they're just smart boxes!</p>
-
 				</section>
+
 
 				<section data-background-image="./dist/theme/img/background.png" >
 					<h2>Practical example</h2>
 					<br/>
-					<h3>error handling</h3>
+					<h3>error handling</h3>'
 					<pre>thats how typical function call looks like in go:<code   data-trim data-noescape>
 				value, err := doSomething()
 				if err != nil {
@@ -299,11 +354,15 @@ func Chain[T, U any](r Result[T], f func(T) Result[U]) Result[U]
 					</code></pre>
 				</section>
 
+
 				<section data-background-image="./dist/theme/img/background.png" >
-					<h2>Lets checkout the code</h2>
+					<h2>Lets Checkout the Code</h2>
 					<div>
+						<br/>
 						<a href="https://github.com/fmt-Println-MKO/fp_kata/tree/8ffcdcbba417e875aec777b43969f17b0e213e04/internal" target="_blank"> --> Projekt Code</a>
+						<br/>
 					</div>
+					<br/>
 					<ul>
 						<li>typical code structue</li>
 						<li>3 layerd architecture - data layer, business layer, api layer</li>
@@ -312,11 +371,13 @@ func Chain[T, U any](r Result[T], f func(T) Result[U]) Result[U]
 						<li>full unit test coverage</li>
 						<li><a href="https://github.com/fmt-Println-MKO/fp_kata/blob/8ffcdcbba417e875aec777b43969f17b0e213e04/FP-Kata.http" target="_blank">GoLand/IntelliJ</a> API calls available</li>
 					</ul>
-
+					<br/>
+					<p><br/><a href="#/18">continue Presentation</a></p>
 				</section>
 
+
 				<section data-background-image="./dist/theme/img/background.png" >
-					<h2 >Lets look at the order datalayer</h2>
+					<h2 >Lets Look at the Order Datalayer</h2>
 					<div>
 						<a href="https://github.com/fmt-Println-MKO/fp_kata/blob/8ffcdcbba417e875aec777b43969f17b0e213e04/internal/datasources/file/orders_mem_storage.go" target="_blank">orders_mem_storage.go</a>
 					</div>
@@ -324,11 +385,11 @@ func Chain[T, U any](r Result[T], f func(T) Result[U]) Result[U]
 						<li>simple in memory storage for orders</li>
 						<li>classic go layout with returning value and erros</li>
 					</ul>
-
 				</section>
 
+
 				<section data-background-image="./dist/theme/img/background.png" >
-					<h2 >Lets look at the order datalayer Unit test</h2>
+					<h2 >Lets Look at the Order Datalayer Unit test</h2>
 					<div>
 						<a href="https://github.com/fmt-Println-MKO/fp_kata/blob/8ffcdcbba417e875aec777b43969f17b0e213e04/internal/datasources/file/orders_mem_storage_test.go" target="_blank">orders_mem_storage_test.go</a>
 					</div>
@@ -338,11 +399,11 @@ func Chain[T, U any](r Result[T], f func(T) Result[U]) Result[U]
 						<li>that moves all the assertions into the test description and out of the runner</li>
 						<li>not ideal, but better compared to having conditions within in the runner as it forces every new test case to thing about the expected result</li>
 					</ul>
-
 				</section>
 
+
 				<section data-background-image="./dist/theme/img/background.png" >
-					<h2 >How Monads could solve it.</h2>
+					<h2 >How Monads could Solve It.</h2>
 					<p>switch to the Step 1 branch for the monads.</p>
 					<p>lets create our own result monad</p>
 					<div>
@@ -351,34 +412,33 @@ func Chain[T, U any](r Result[T], f func(T) Result[U]) Result[U]
 					<p>What is this Monad about?</p>
 					<ul>
 						<li>It is a container for anything</li>
-						<li>it capsulates either a result value or an error and know if is as a valid result or not</li>
+						<li>it encapsulates either a result value or an error and know if is as a valid result or not</li>
 						<li>It can be easily created with the OK or the Err (Errf) function</li>
 						<li>It provides methods to provide information about the context: IsOk(), IsError()</li>
 						<li>It provides method to retrieve its value: MustGet() and Error()</li>
 					</ul>
-
 				</section>
 
-				<section data-background-image="./dist/theme/img/background.png" >
-					<h2 >Lets use this Monad in our Order staroage</h2>
 
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2 >Lets Use this Monad in our Order Storage</h2>
 					<div>
 						<a href="https://github.com/fmt-Println-MKO/fp_kata/blob/692328122ffc480830941fb54981dedc3f80d5f1/internal/datasources/file/orders_mem_storage.go" target="_blank">orders_mem_storage.go</a>
 					</div>
-					<p>What has changes?</p>
+					<p>What has changed?</p>
 					<ul>
 						<li>We only return a single value now, our Resut Monad instead of two before (order and error)</li>
-						<li>we use the helper functions to cunstruct the Monad</li>
-						<li>Ok() for the postive case</li>
+						<li>we use the helper functions to construct the Monad</li>
+						<li>Ok() for the positive case</li>
 						<li>Errf() for the negative case</li>
-						<li>thats it.</li>
+						<li>that's it.</li>
 					</ul>
 					<p>Not a big change yet?</p>
 				</section>
 
-				<section data-background-image="./dist/theme/img/background.png" >
-					<h2 >Lets look how this affected our Unit Test</h2>
 
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2 >Lets Look how this Affected our Unit Test</h2>
 					<div>
 						<a href="https://github.com/fmt-Println-MKO/fp_kata/blob/692328122ffc480830941fb54981dedc3f80d5f1/internal/datasources/file/orders_mem_storage_test.go" target="_blank">orders_mem_storage_test.go</a>
 					</div>
@@ -389,16 +449,14 @@ func Chain[T, U any](r Result[T], f func(T) Result[U]) Result[U]
 						<li>all assertions are now in the runner itself</li>
 						<li>no conditional logic inside the runner</li>
 						<li>a single assert covers it all</li>
-
 					</ul>
 					<p>You think about result in your test description and no more about validations and assertions</p>
 					<p>Isn't that simpler and easier?</p>
-
 				</section>
 
-				<section data-background-image="./dist/theme/img/background.png" >
-					<h2 >How does this change affect the Service layer?</h2>
 
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2 >How does this Change Affect the Service Layer?</h2>
 					<div>
 						<a href="https://github.com/fmt-Println-MKO/fp_kata/blob/692328122ffc480830941fb54981dedc3f80d5f1/internal/services/orders_service.go" target="_blank">orders_service.go</a>
 					</div>
@@ -406,38 +464,292 @@ func Chain[T, U any](r Result[T], f func(T) Result[U]) Result[U]
 					<ul>
 						<li>we only receive the Result Monad</li>
 						<li>so client of order storage can no more ignore a possible error</li>
-						<li>We us a method now (no more an expression) to ask the Result Monad about is context if there was an error</li>
+						<li>We use a method now (no more an expression) to ask the Result Monad about is context if there was an error</li>
 					</ul>
 					<p>Asking the monad about its result context is more natural language</p>
 					<p>Isn't that simpler and easier?</p>
-
 				</section>
 
 
 				<section data-background-image="./dist/theme/img/background.png" >
-					<h2 >Step 1 to functional Style in Go is done :)</h2>
+					<h2>What did we Achieved 1/2?</h2>
+					<pre>
+						<code data-trim data-noescape data-line-numbers="1-2|3-5">
+							// multiple return value
+							GetOrder(ctx context.Context, orderID int) (*dsmodels.Order, error)
+							                             ↓
+							// return single box/container --> Monad
+							GetOrder(ctx context.Context, orderID int) monads.Result[dsmodels.Order]
+						</code>
+					</pre>
+					<p class="fragment">only return a single entity</p>
+					<pre class="fragment"><code data-trim data-noescape data-line-numbers="1-12|13-15">
+						validateOrderMatches := func(t *testing.T, expected, actual *dsmodels.Order, err error) {
+							assert.NoError(t, err, "unexpected error received")
+							assert.Equal(t, expected, actual, "expected order mismatch")
+						}
+						validateOrderNotFound := func(t *testing.T, actual *dsmodels.Order, err error) {
+							assert.Nil(t, actual, "expected no order to be returned")
+							assert.EqualError(t, err, errOrderNotFound, "expected error mismatch")
+						}
 
-
-					<p>Conclusion</p>
-					<p>While using a Result Monad in the orders data storage, we gained:</p>
-					<ul>
-						<li>only return a single entity</li>
-						<li>it makes our unit test a lot easier</li>
-						<li>Clients can no more ignore erros</li>
-						<li>Using a speaking method is closer to natural language to understand what the code is about</li>
-					</ul>
-
-					<p>Lets Go to step 2, and speak about Chaning</p>
-
+						validate: func(t *testing.T, order *dsmodels.Order, err error) {
+							validateOrderMatches(t, &dsmodels.Order{ID: 1, UserId: 123, Payments: []int{1, 2}}, order, err)
+						},
+														↓
+						//it makes our unit test a lot easier
+						expectedResult: monads.Ok(dsmodels.Order{ID: 1, UserId: 123, Payments: []int{1, 2}}),
+					</code></pre>
+					<p class="fragment">it makes our unit test a lot easier</p>
 				</section>
 
 
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2>What did we Achieved 2/2?</h2>
+					<pre><code   data-trim data-noescape data-line-numbers="1-2|3-4">
+						//dsOrder, _ := service.storage.GetOrder(ctx, id)
+						dsOrder, err := service.storage.GetOrder(ctx, id)
+												↓
+						dsOrderResult := service.storage.GetOrder(ctx, id)
+					</code></pre>
+					<p class="fragment">Clients can no more ignore errors</p>
+					<pre class="fragment"><code   data-trim data-noescape data-line-numbers="1|2-3">
+						if err != nil
+								↓
+						if dsOrderResult.IsError()
+					</code></pre>
+					<p class="fragment">Using a speaking method is closer to natural language to understand what the code is about</p>
+					<h3 class="fragment">Lets Go to step 2, and speak about Chaining</h3>
+					<br/>
+					<p><br/><a href="#/26">continue Presentation</a></p>
+				</section>
+
+
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2>Some improvements Before we Go Further</h2>
+					<div>
+						<a href="https://github.com/fmt-Println-MKO/fp_kata/blob/Step-2-Function-Chain/internal/datasources/file/orders_mem_storage.go" target="_blank">orders_mem_storage.go</a>
+					</div>
+					<p>What has changed here?</p>
+					<ul>
+						<li>using a monad library instead of our own result Monad: github.com/samber/mo</li>
+						<li>that lib features a lot of Monads with all instructions needed to make them powerfull</li>
+					</ul>
+				</section>
+
+
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2 >Lets Check how we Currently Process the Order.</h2>
+					<p>how do we convert the result fromt the storage layer and transform and enrich it to the required result of the service</p>
+					<div>
+						<a href="https://github.com/fmt-Println-MKO/fp_kata/blob/692328122ffc480830941fb54981dedc3f80d5f1/internal/services/orders_service.go#L173" target="_blank">orders_service.go processOrder </a>
+					</div>
+					<p>What do we have here?</p>
+					<ul>
+						<li>we having 5 return statements within a single function</li>
+						<li>we call the authorization service</li>
+						<li>we process the result from the authorization service</li>
+						<li>we add the payment info from separate function</li>
+						<li>we add the user info from a separate function</li>
+						<li>for every step there is an expression to check if we can continue or not</li>
+					</ul>
+					<p>Wouldn't it be smart if we would have just a single return statement and a single check?</p>
+				</section>
+
+
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2 >Could Monads help Solve Previous Question?</h2>
+					<p>What did we said about a Monad: it as a value with context.</p>
+					<p>Lets use this knowledge about context</p>
+					<div>
+						<a href="https://github.com/samber/mo?tab=readme-ov-file#resultt-any" target="_blank">Result Monad docu </a>
+					</div>
+					<p>What do we have here?</p>
+					<ul>
+						<li>some more Methods that deal with the context compared to what we created in the first step</li>
+						<li>lets have a look at Flatmap: <a href="https://pkg.go.dev/github.com/samber/mo#Result.FlatMap" target="_blank">FlatMap docu</a> </li>
+						<li>It is mapper if we have a valid result</li>
+						<li>it uses the knowledge of the context to safely execute a mapping function if there is a valid result</li>
+						<li>the mapper function itself should also return a ResultMonad and FlatMap returns also a Result Monad</li>
+						<li>lets check the example: <a href="https://go.dev/play/p/Ud5QjZOqg-7" target="_blank">FlatMap Playground</a> </li>
+					</ul>
+					<p>So what do we need to mnake use of it?</p>
+				</section>
+
+
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2 >We Need more Monads</h2>
+					<p>lets change the functions to return Monads</p>
+					<div>
+						<a href="https://github.com/fmt-Println-MKO/fp_kata/blob/773a924b0729e50a5454dae12fdd82682b73340a/internal/services/orders_service.go#L205" target="_blank">orders_service.go addUser</a>
+					</div>
+					<p>What do we have here?</p>
+					<ul>
+						<li>we moved the authorization check also into a function that returns a Monad</li>
+						<li>the addPayment method now returns a Monad</li>
+						<li>the addUser method now returns a Monad</li>
+					</ul>
+					<p>How to make use of those?</p>
+				</section>
+
+
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2>As we have Monads now, lets chain them</h2>
+					<p>we now have 4 functions that all return a Result Monad</p>
+					<div>
+						<a href="https://github.com/fmt-Println-MKO/fp_kata/blob/773a924b0729e50a5454dae12fdd82682b73340a/internal/services/orders_service.go#L168" target="_blank">orders_service.go processOrder</a>
+					</div>
+					<p>What happened here?</p>
+					<ul>
+						<li>because the Monad knows it context --> was there an error or a valid result</li>
+						<li>FlatMap executes the passed function based on the context</li>
+						<li>calling FlatMap preserves the context</li>
+						<li>We could chain the calls to FlatMap safely</li>
+						<li>in case of an error we preserve it and return safe result</li>
+					</ul>
+				</section>
+
+
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2>Summarize</h2>
+					<p></p>
+					<p>What happen here?</p>
+					<ul>
+						<li>we composed small functions into more complex</li>
+						<li>we chained the functions calls</li>
+						<li>we only need to check for a result on a single place</li>
+						<li>we only have a single return statement</li>
+						<li>in case of an error we preserve it and return safe result</li>
+					</ul>
+				</section>
+
+
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2>What did we achieved in step-2 1/2?</h2>
+				  <div class="columns">
+				    <div class="column">
+						<pre>
+							<code class="language-go" data-trim data-noescape>
+								// Authorization check
+								isAuthorized, err := service.authorizationService.IsAuthorized(ctx, userId, order)
+								if err != nil {
+									return nil, err
+								}
+								if !isAuthorized {
+									return nil, errors.New("user is not authorized to access this order")
+								}
+								// Add payments to the order
+								order, err = service.addPayments(ctx, order)
+								if err != nil {
+									return nil, err
+								}
+								// Add user to the order
+								order, err = service.addUser(ctx, order)
+								if err != nil {
+									return nil, err
+								}
+								return order, nil
+							</code>
+						</pre>
+				    </div>
+				    <div class="column">
+						<pre>
+							<code class="language-go" data-trim data-noescape>
+								//Authorization check
+								return service.verifyAuthorization(ctx, userId, order).
+									// Add payments to the order
+									FlatMap(func(value *models.Order) mo.Result[*models.Order] {
+										return service.addPayments(ctx, value)
+									}).
+									// Add user to the order
+									FlatMap(func(value *models.Order) mo.Result[*models.Order] {
+										return service.addUser(ctx, value)
+									})
+							</code>
+						</pre>
+						<div class="fragment">
+							<ul>
+								<li>using the benefit of Monads that they know their context</li>
+								<li>we composed small function to a more complex one</li>
+							</ul>
+						</div>
+						<br/>
+						<ul>
+							<li class="fragment">the code gets smaller</li>
+							<li class="fragment">there is only a single return</li>
+							<li class="fragment">code is easier to understand</li>
+							<li class="fragment">don't think read it like a book</li>
+						</ul>
+				    </div>
+				  </div>
+				  <p class="fragment">It is not readable like a book?</p>
+				</section>
+
+
+				<section data-background-image="./dist/theme/img/background.png" data-visibility="hidden">
+					<h2>What did we achieved in step-2 2/2?</h2>
+					<div>
+						<ul>
+							<li>using the benefit of Monads that they know their context</li>
+							<li>we composed small function to a more complex one</li>
+						</ul>
+					</div>
+					<br/>
+					<div>
+						<ul>
+							<li>the code gets smaller</li>
+							<li>there is only a single return</li>
+							<li>code is easier to understand</li>
+							<li>don't think read it like a book</li>
+						</ul>
+					</div>
+					<p class="fragment">It is not readable like a book?</p>
+				</section>
+
+
+				<section data-background-image="./dist/theme/img/background.png" >
+					<h2>What did we achieved in step-2 2/2?</h2>
+					<div>
+						imagine like this
+					</div>
+					<div class="columns">
+				    <div class="column">
+						<pre>
+							<code class="language-go" data-trim data-noescape>
+								//Authorization check
+								return service.verifyAuthorization(ctx, userId, order).
+									// Add payments to the order
+									FlatMap(func(value *models.Order) mo.Result[*models.Order] {
+										return service.addPayments(ctx, value)
+									}).
+									// Add user to the order
+									FlatMap(func(value *models.Order) mo.Result[*models.Order] {
+										return service.addUser(ctx, value)
+									})
+							</code>
+						</pre>
+				    </div>
+				    <div class="column">
+						<pre>
+							<code class="language-go" data-trim data-noescape>
+								//Authorization check
+								return service.verifyAuthorization(userId, order).
+									// Add payments to the order
+									FlatMap(service.addPayments).
+									// Add user to the order
+									FlatMap(service.addUser)
+							</code>
+						</pre>
+				    </div>
+				  </div>
+				  <p >Better now?</p>
+				  <p class="fragment">But this is another story how to remove the Ctx ;)</p>
+				</section>
 
 
 				<section data-background-image="./dist/theme/img/background.png" >
 					<h2>Title</h2>
 				</section>
-
 
 
 			</div>
