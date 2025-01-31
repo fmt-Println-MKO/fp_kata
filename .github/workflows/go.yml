@@ -44,12 +44,18 @@ jobs:
     # Test and Generate Coverage
     - name: Run Tests and Generate Coverage
       run: |
-        go test -cover -coverpkg=$(go list ./... | grep -v '/mocks' | grep -v '/cmd' | tr '\n' ',') ./... -coverprofile=coverage.out
-        go tool cover -func=coverage.out
+        go test -cover -coverpkg=$(go list ./... | grep -v '/mocks' | grep -v '/cmd' | tr '\n' ',') ./... -coverprofile=coverage.txt
+        go tool cover -func=coverage.txt
 
     # Upload Coverage Report
     - name: Upload Coverage Report
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report
-        path: coverage.out
+        path: coverage.txt
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        slug: fmt-Println-MKO/fp_kata
