@@ -32,6 +32,12 @@ jobs:
     - name: Install Wire
       run: go install github.com/google/wire/cmd/wire@latest
 
+    # Fetch dependencies
+    - name: Fetch Dependencies
+      run: |
+        go mod tidy
+        go mod download
+        
     - name: Build
       run: go build -v ./...
 
