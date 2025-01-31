@@ -1,0 +1,49 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: CI - Test and Coverage
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test-and-coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout the repository
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    # Install Go
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: 1.23  # Match your Go version
+
+    # Install Mockery
+    - name: Install Mockery
+      run: go install github.com/vektra/mockery/v2@latest
+
+    # Install Wire
+    - name: Install Wire
+      run: go install github.com/google/wire/cmd/wire@latest
+
+    - name: Build
+      run: go build -v ./...
+
+    # Test and Generate Coverage
+    - name: Run Tests and Generate Coverage
+      run: |
+        go test -cover -coverpkg=$(go list ./... | grep -v '/mocks' | grep -v '/cmd' | tr '\n' ',') ./... -coverprofile=coverage.out
+        go tool cover -func=coverage.out
+
+    # Upload Coverage Report
+    - name: Upload Coverage Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: coverage.out
