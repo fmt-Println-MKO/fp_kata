@@ -1,5 +1,7 @@
 # Functional Programming in Go - Demo Project
 
+![Functional Programming Gopher](docs/dist/theme/img/fp_kata_gopher.png)
+
 This project serves as a **demo application** showcasing how to apply **functional programming patterns** in Go. While Go traditionally follows an imperative, non-functional style, this project explores how concepts like monads, chaining, and folds can be utilized to write cleaner and more expressive code in Go.
 
 The **main branch** contains the classic, non-functional Go implementation. Each step towards functional programming is available in separate branches, showing a gradual transformation of the codebase.
