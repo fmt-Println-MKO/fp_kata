@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fp_kata/common/constants"
+	"fp_kata/common/monads"
 	"fp_kata/common/utils"
 	"fp_kata/internal/datasources"
 	"fp_kata/internal/datasources/dsmodels"
@@ -54,18 +55,18 @@ func (service *ordersService) StoreOrder(ctx context.Context, userId int, order 
 	}
 
 	// Store order in database
-	var storedOrderModel *dsmodels.Order
+	var storedOrderModelResult monads.Result[dsmodels.Order]
 	if isNewOrder {
-		storedOrderModel, err = service.storage.InsertOrder(ctx, *order.ToDSModel())
+		storedOrderModelResult = service.storage.InsertOrder(ctx, *order.ToDSModel())
 	} else {
-		storedOrderModel, err = service.storage.UpdateOrder(ctx, *order.ToDSModel())
+		storedOrderModelResult = service.storage.UpdateOrder(ctx, *order.ToDSModel())
 	}
-	if err != nil {
-		return nil, err
+	if storedOrderModelResult.IsError() {
+		return nil, storedOrderModelResult.Error()
 	}
 
 	// Map stored order to the response model
-	newOrder := models.MapToOrder(*storedOrderModel)
+	newOrder := models.MapToOrder(storedOrderModelResult.MustGet())
 	newOrder.Payments = storedPayments
 
 	return newOrder, nil
@@ -95,12 +96,12 @@ func (service *ordersService) GetOrder(ctx context.Context, userId int, id int) 
 		return nil, errors.New("user id is required")
 	}
 
-	dsOrder, err := service.storage.GetOrder(ctx, id)
-	if err != nil {
-		return nil, err
+	dsOrderResult := service.storage.GetOrder(ctx, id)
+	if dsOrderResult.IsError() {
+		return nil, dsOrderResult.Error()
 	}
 
-	order, err := service.processDsOrder(ctx, userId, *dsOrder)
+	order, err := service.processDsOrder(ctx, userId, dsOrderResult.MustGet())
 	if err != nil {
 		return nil, err
 	}
@@ -114,13 +115,13 @@ func (service *ordersService) GetOrders(ctx context.Context, userId int) ([]*mod
 	if userId == 0 {
 		return nil, errors.New("user id is required")
 	}
-	dsOrders, err := service.storage.GetAllOrdersForUser(ctx, userId)
-	if err != nil {
-		return nil, err
+	dsOrdersResult := service.storage.GetAllOrdersForUser(ctx, userId)
+	if dsOrdersResult.IsError() {
+		return nil, dsOrdersResult.Error()
 	}
 
 	var orders []*models.Order
-	for _, dsOrder := range dsOrders {
+	for _, dsOrder := range dsOrdersResult.MustGet() {
 		order, err := service.processDsOrder(ctx, userId, dsOrder)
 		if err != nil {
 			return nil, err
@@ -137,13 +138,13 @@ func (service *ordersService) GetOrdersWithFilter(ctx context.Context, userId in
 	if userId == 0 {
 		return nil, errors.New("user id is required")
 	}
-	allDsOrders, err := service.storage.GetAllOrdersForUser(ctx, userId)
-	if err != nil {
-		return nil, err
+	dsOrdersResult := service.storage.GetAllOrdersForUser(ctx, userId)
+	if dsOrdersResult.IsError() {
+		return nil, dsOrdersResult.Error()
 	}
 
 	var filteredOrders []*models.Order
-	for _, dsOrder := range allDsOrders {
+	for _, dsOrder := range dsOrdersResult.MustGet() {
 		order := models.MapToOrder(dsOrder)
 		if filter(order) {
 			order, err := service.processOrder(ctx, userId, order)

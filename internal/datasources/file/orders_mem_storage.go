@@ -3,6 +3,7 @@ package file
 import (
 	"context"
 	"errors"
+	"fp_kata/common/monads"
 	"fp_kata/common/utils"
 	"fp_kata/internal/datasources"
 	"fp_kata/internal/datasources/dsmodels"
@@ -14,17 +15,17 @@ type inMemoryOrdersStorage struct {
 	orders map[int]dsmodels.Order
 }
 
-func (s *inMemoryOrdersStorage) GetOrder(ctx context.Context, orderID int) (*dsmodels.Order, error) {
+func (s *inMemoryOrdersStorage) GetOrder(ctx context.Context, orderID int) monads.Result[dsmodels.Order] {
 	utils.LogAction(ctx, compOrdersStorage, "GetOrder")
 
 	order, exists := s.orders[orderID]
 	if !exists {
-		return nil, errors.New("order not found")
+		return monads.Errf[dsmodels.Order]("order not found")
 	}
-	return &order, nil
+	return monads.Ok(order)
 }
 
-func (s *inMemoryOrdersStorage) GetAllOrdersForUser(ctx context.Context, userID int) ([]dsmodels.Order, error) {
+func (s *inMemoryOrdersStorage) GetAllOrdersForUser(ctx context.Context, userID int) monads.Result[[]dsmodels.Order] {
 	utils.LogAction(ctx, compOrdersStorage, "GetAllOrdersForUser")
 
 	userOrders := make([]dsmodels.Order, 0)
@@ -33,7 +34,7 @@ func (s *inMemoryOrdersStorage) GetAllOrdersForUser(ctx context.Context, userID 
 			userOrders = append(userOrders, order)
 		}
 	}
-	return userOrders, nil
+	return monads.Ok(userOrders)
 }
 
 func (s *inMemoryOrdersStorage) DeleteOrder(ctx context.Context, orderID int) error {
@@ -46,25 +47,25 @@ func (s *inMemoryOrdersStorage) DeleteOrder(ctx context.Context, orderID int) er
 	return nil
 }
 
-func (s *inMemoryOrdersStorage) UpdateOrder(ctx context.Context, order dsmodels.Order) (*dsmodels.Order, error) {
+func (s *inMemoryOrdersStorage) UpdateOrder(ctx context.Context, order dsmodels.Order) monads.Result[dsmodels.Order] {
 	utils.LogAction(ctx, compOrdersStorage, "UpdateOrder")
 
 	_, exists := s.orders[order.ID]
 	if !exists {
-		return nil, errors.New("order not found")
+		return monads.Errf[dsmodels.Order]("order not found")
 	}
 	s.orders[order.ID] = order
-	return &order, nil
+	return monads.Ok(order)
 }
 
-func (s *inMemoryOrdersStorage) InsertOrder(ctx context.Context, order dsmodels.Order) (*dsmodels.Order, error) {
+func (s *inMemoryOrdersStorage) InsertOrder(ctx context.Context, order dsmodels.Order) monads.Result[dsmodels.Order] {
 	utils.LogAction(ctx, compOrdersStorage, "InsertOrder")
 
 	if _, exists := s.orders[order.ID]; exists {
-		return nil, errors.New("order already exists")
+		return monads.Errf[dsmodels.Order]("order already exists")
 	}
 	s.orders[order.ID] = order
-	return &order, nil
+	return monads.Ok(order)
 }
 
 func NewOrdersStorage() datasources.OrdersDatasource {
@@ -72,3 +73,4 @@ func NewOrdersStorage() datasources.OrdersDatasource {
 		orders: make(map[int]dsmodels.Order),
 	}
 }
+
