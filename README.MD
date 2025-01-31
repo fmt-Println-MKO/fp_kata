@@ -1,5 +1,8 @@
 [![codecov](https://codecov.io/gh/fmt-Println-MKO/fp_kata/graph/badge.svg?token=CVWSD2NFF0)](https://codecov.io/gh/fmt-Println-MKO/fp_kata)
 
+[![codecov](https://codecov.io/gh/fmt-Println-MKO/fp_kata/graphs/sunburst.svg?token=CVWSD2NFF0)](https://codecov.io/gh/fmt-Println-MKO/fp_kata)
+
+
 # Functional Programming in Go - Demo Project
 
 ![Functional Programming Gopher](docs/dist/theme/img/fp_kata_gopher.png)
