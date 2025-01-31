@@ -30,6 +30,9 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/philhofer/fwd v1.1.3-0.20240916144458-20a13a1f6b7c // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/repeale/fp-go v0.11.1 // indirect
+	github.com/samber/lo v1.47.0 // indirect
+	github.com/samber/mo v1.13.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/tinylib/msgp v1.2.5 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect

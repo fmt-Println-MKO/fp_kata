@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fp_kata/common/constants"
-	"fp_kata/common/monads"
 	"fp_kata/common/utils"
 	"fp_kata/internal/datasources"
 	"fp_kata/internal/datasources/dsmodels"
 	"fp_kata/internal/models"
+	"github.com/samber/mo"
 )
 
 const compOrdersService = "OrdersService"
@@ -55,7 +55,7 @@ func (service *ordersService) StoreOrder(ctx context.Context, userId int, order 
 	}
 
 	// Store order in database
-	var storedOrderModelResult monads.Result[dsmodels.Order]
+	var storedOrderModelResult mo.Result[dsmodels.Order]
 	if isNewOrder {
 		storedOrderModelResult = service.storage.InsertOrder(ctx, *order.ToDSModel())
 	} else {
@@ -101,12 +101,12 @@ func (service *ordersService) GetOrder(ctx context.Context, userId int, id int) 
 		return nil, dsOrderResult.Error()
 	}
 
-	order, err := service.processDsOrder(ctx, userId, dsOrderResult.MustGet())
-	if err != nil {
-		return nil, err
+	orderResult := service.processDsOrder(ctx, userId, dsOrderResult.MustGet())
+	if orderResult.IsError() {
+		return nil, orderResult.Error()
 	}
 
-	return order, nil
+	return orderResult.Get()
 }
 
 func (service *ordersService) GetOrders(ctx context.Context, userId int) ([]*models.Order, error) {
@@ -122,11 +122,11 @@ func (service *ordersService) GetOrders(ctx context.Context, userId int) ([]*mod
 
 	var orders []*models.Order
 	for _, dsOrder := range dsOrdersResult.MustGet() {
-		order, err := service.processDsOrder(ctx, userId, dsOrder)
-		if err != nil {
-			return nil, err
+		orderResult := service.processDsOrder(ctx, userId, dsOrder)
+		if orderResult.IsError() {
+			return nil, orderResult.Error()
 		}
-		orders = append(orders, order)
+		orders = append(orders, orderResult.MustGet())
 	}
 
 	return orders, nil
@@ -147,74 +147,68 @@ func (service *ordersService) GetOrdersWithFilter(ctx context.Context, userId in
 	for _, dsOrder := range dsOrdersResult.MustGet() {
 		order := models.MapToOrder(dsOrder)
 		if filter(order) {
-			order, err := service.processOrder(ctx, userId, order)
-			if err != nil {
-				return nil, err
+			filteredOrderResult := service.processOrder(ctx, userId, order)
+			if filteredOrderResult.IsError() {
+				return nil, filteredOrderResult.Error()
 			}
-			filteredOrders = append(filteredOrders, order)
+			filteredOrders = append(filteredOrders, filteredOrderResult.MustGet())
 		}
 	}
 
 	return filteredOrders, nil
 }
 
-func (service *ordersService) processDsOrder(ctx context.Context, userId int, storedOrder dsmodels.Order) (*models.Order, error) {
+func (service *ordersService) processDsOrder(ctx context.Context, userId int, storedOrder dsmodels.Order) mo.Result[*models.Order] {
 	// Map the stored order
 	order := models.MapToOrder(storedOrder)
 
-	order, err := service.processOrder(ctx, userId, order)
-
-	if err != nil {
-		return nil, err
-	}
-	return order, nil
+	return service.processOrder(ctx, userId, order)
 }
 
-func (service *ordersService) processOrder(ctx context.Context, userId int, order *models.Order) (*models.Order, error) {
+func (service *ordersService) processOrder(ctx context.Context, userId int, order *models.Order) mo.Result[*models.Order] {
 
 	// Authorization check
+	return service.verifyAuthorization(ctx, userId, order).
+		// Add payments to the order
+		FlatMap(func(value *models.Order) mo.Result[*models.Order] {
+			return service.addPayments(ctx, value)
+		}).
+		// Add user to the order
+		FlatMap(func(value *models.Order) mo.Result[*models.Order] {
+			return service.addUser(ctx, value)
+		})
+}
+func (service *ordersService) verifyAuthorization(ctx context.Context, userId int, order *models.Order) mo.Result[*models.Order] {
+	utils.LogAction(ctx, compOrdersService, "verifyAuthorization")
+
 	isAuthorized, err := service.authorizationService.IsAuthorized(ctx, userId, order)
 	if err != nil {
-		return nil, err
+		return mo.Err[*models.Order](err)
 	}
 	if !isAuthorized {
-		return nil, errors.New("user is not authorized to access this order")
+		return mo.Errf[*models.Order]("user is not authorized to access this order")
 	}
-
-	// Add payments to the order
-	order, err = service.addPayments(ctx, order)
-	if err != nil {
-		return nil, err
-	}
-
-	// Add user to the order
-	order, err = service.addUser(ctx, order)
-	if err != nil {
-		return nil, err
-	}
-
-	return order, nil
+	return mo.Ok(order)
 }
 
-func (service *ordersService) addPayments(ctx context.Context, order *models.Order) (*models.Order, error) {
+func (service *ordersService) addPayments(ctx context.Context, order *models.Order) mo.Result[*models.Order] {
 	utils.LogAction(ctx, compOrdersService, "addPayment")
 
 	payments, err := service.paymentService.GetPaymentsByOrder(ctx, order.ID)
 	if err != nil {
-		return nil, err
+		return mo.Err[*models.Order](err)
 	}
 	order.Payments = payments
-	return order, nil
+	return mo.Ok(order)
 }
 
-func (service *ordersService) addUser(ctx context.Context, order *models.Order) (*models.Order, error) {
-	utils.LogAction(ctx, compOrdersService, "addPayment")
+func (service *ordersService) addUser(ctx context.Context, order *models.Order) mo.Result[*models.Order] {
+	utils.LogAction(ctx, compOrdersService, "addUser")
 
 	user := ctx.Value(constants.AuthenticatedUserKey).(*models.User)
-
 	if user == nil {
-		return nil, errors.New(errUserRequired)
+		return mo.Errf[*models.Order](errUserRequired)
 	}
 	order.User = user
-	return order, nil
+	return mo.Ok(order)
 }
